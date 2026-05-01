@@ -1,0 +1,359 @@
+\documentclass[journal]{IEEEtran}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{url}
+
+\begin{document}
+
+\title{Seismic Facies Classification Using DeepLabV3+ with Progressive Architecture Improvements: A Study on the F3 Block Netherlands}
+
+\author{Mehmet Furkan Kisli}
+
+\maketitle
+
+% ─────────────────────────────────────────────────────────────
+\begin{abstract}
+Automated seismic facies classification is a critical task in subsurface characterization, enabling efficient interpretation of geological structures for hydrocarbon exploration and reservoir management. In this study, we present a progressive investigation of DeepLabV3+ applied to seismic facies segmentation on the F3 Block Netherlands benchmark dataset, spanning six geological classes. Four model configurations are trained and evaluated across a systematic ablation of encoder capacity, input dimensionality, and training strategy. The baseline (v3, ResNet-34, inline-only) achieves 64.46\% mIoU on inline test data but generalizes poorly to the crossline direction (27.10\% mIoU), revealing a critical directional generalization gap. Version 4 (ResNet-50, multi-directional training) resolves the majority of this gap (+41.3~pp Test2 mIoU). Version 5 (EfficientNet-B4, 1-channel) introduces a triple loss function with label smoothing, Mixup augmentation, and S4-targeted oversampling, achieving 77.99\% combined mIoU. Our final model, v7 (EfficientNet-B4, 2.5D three-channel neighbouring-slice input), combines a strong encoder with spatial context aggregation and achieves the best results across all metrics: combined mIoU of 79.26\%, pixel accuracy of 94.13\%, and mean class accuracy of 89.75\%, surpassing the Alaudah et al.~\cite{alaudah2019} benchmark. An additional ablation with a weaker 2.5D encoder (ResNet-50) demonstrates that spatial context alone does not compensate for encoder capacity and further worsens the persistent S4~(Zechstein) crossline challenge. All experiments are conducted on the publicly available F3 dataset using PyTorch and the segmentation-models-pytorch library.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Seismic facies classification, DeepLabV3+, semantic segmentation, crossline generalization, Focal loss, EfficientNet, 2.5D multi-view input, F3 Block Netherlands.
+\end{IEEEkeywords}
+
+% ─────────────────────────────────────────────────────────────
+\section{Introduction}
+
+Seismic facies classification is a fundamental step in seismic stratigraphic interpretation, enabling geoscientists to delineate subsurface geological bodies with distinct reflection characteristics. Traditionally, this process relies on manual annotation by domain experts, which is time-consuming, subjective, and does not scale to the growing volumes of 3D seismic data acquired in modern exploration campaigns.
+
+The advent of deep learning has transformed automated seismic interpretation. Convolutional neural networks (CNNs) and their encoder-decoder variants have demonstrated strong performance on publicly available benchmarks such as the F3 Block Netherlands dataset introduced by Alaudah et al.~\cite{alaudah2019}. These methods treat each 2D seismic cross-section as an image segmentation problem, assigning a geological class label to every pixel.
+
+A frequently overlooked challenge in 2D seismic segmentation is \emph{directional generalization}: models trained exclusively on inline cross-sections often fail on crossline slices due to the orthogonal viewing geometry of the same 3D volume. A complementary challenge is \emph{spatial context}: each 2D slice is processed independently, ignoring depth-wise continuity information that could aid boundary delineation between thin geological layers.
+
+In this paper, we conduct a systematic study of four DeepLabV3+ configurations on the F3 benchmark. We investigate the impact of directional training, encoder capacity, loss design, and 2.5D input on both inline and crossline generalization. Our final model, v7, demonstrates that combining a strong EfficientNet-B4 encoder with 2.5D neighbouring-slice stacking achieves superior performance over single-channel variants.
+
+The remainder of this paper is organized as follows. Section~\ref{sec:related} reviews related work. Section~\ref{sec:dataset} describes the dataset. Section~\ref{sec:method} details the methodology. Section~\ref{sec:results} presents experimental results. Section~\ref{sec:discussion} discusses findings, and Section~\ref{sec:conclusion} concludes.
+
+% ─────────────────────────────────────────────────────────────
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Supervised Seismic Facies Classification}
+
+Early deep learning approaches to seismic facies classification employed patch-based CNNs~\cite{alaudah2019}. Alaudah et al. introduced the F3 Block benchmark and proposed Patch CNN and Section CNN baselines, achieving pixel accuracies of 90.5\% and 92.2\%, respectively. DeepLabV3+~\cite{chen2018} has been adapted to geophysical data due to its Atrous Spatial Pyramid Pooling (ASPP) module, which captures multi-scale contextual features particularly well-suited to the range of spatial scales in seismic stratigraphy.
+
+\subsection{Few-Shot and Self-Supervised Approaches}
+
+Saha and Whitaker~\cite{saha2025} proposed AdaSemSeg, an adaptive few-shot semantic segmentation framework using Gaussian Process regression. Chikhaoui and Alfarraj~\cite{chikhaoui2024} demonstrated that self-supervised pretraining via masked image reconstruction significantly reduces annotation requirements while maintaining segmentation quality.
+
+\subsection{Hybrid CNN-Transformer Architectures}
+
+Zu et al.~\cite{zu2024} introduced ResACEUnet for 3D fault detection, integrating spatial and channel attention with residual connections. Zhou et al.~\cite{zhou2025} proposed MWT-MTA-Net, combining multilevel Haar wavelet transforms with multiresolution transformer attention for seismic facies classification.
+
+\subsection{Benchmark Datasets}
+
+Gao et al.~\cite{gao2025} introduced cigFacies, a massive-scale benchmark of 8{,}000 samples for seismic facies, constructed through field data curation, knowledge-guided synthesis, and GAN-based generation.
+
+% ─────────────────────────────────────────────────────────────
+\section{Dataset}
+\label{sec:dataset}
+
+We use the F3 Block Netherlands dataset~\cite{alaudah2019}, a publicly available 3D seismic volume from the North Sea with dimensions $401 \times 701 \times 255$ (inline $\times$ crossline $\times$ depth). The dataset provides six geological facies labels: Upper North Sea Group (S0), Lower North Sea Group (S1), Rijnland Group (S2), Scruff (S3), Zechstein (S4), and Under Zechstein (S5). Fig.~\ref{fig:eda} shows representative inline and crossline sections alongside the class distribution.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{eda_multiview.png}
+\caption{F3 Block Netherlands: class distribution (top-left), representative inline \#200 seismic section (top-right), crossline \#350 section (bottom-left), and facies label map for inline \#200 (bottom-right). The Zechstein (S4, orange) appears as a broad horizontal reflector in inline but is geometrically compressed in crossline, explaining its persistent crossline classification difficulty.}
+\label{fig:eda}
+\end{figure}
+
+The dataset follows the train/test split of Alaudah et al.~\cite{alaudah2019}. Test1 consists of inline slices not present in the training volume; Test2 consists of crossline slices. This design evaluates both within-direction performance (Test1) and cross-directional generalization (Test2).
+
+\begin{table}[!t]
+\caption{F3 Block Class Distribution (Training Set)}
+\label{tab:class_dist}
+\centering
+\begin{tabular}{clrr}
+\toprule
+ID & Name & Pixels & Fraction (\%) \\
+\midrule
+S0 & Upper North Sea & $\sim$52.3M & $\sim$37.2 \\
+S1 & Lower North Sea & $\sim$25.1M & $\sim$17.8 \\
+S2 & Rijnland Group  & $\sim$41.8M & $\sim$29.7 \\
+S3 & Scruff          & $\sim$8.4M  & $\sim$6.0  \\
+S4 & Zechstein        & $\sim$9.3M  & $\sim$6.6  \\
+S5 & Under Zechstein  & $\sim$4.2M  & $\sim$3.0  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ─────────────────────────────────────────────────────────────
+\section{Methodology}
+\label{sec:method}
+
+\subsection{Architecture: DeepLabV3+}
+
+DeepLabV3+~\cite{chen2018} combines atrous convolutions with a lightweight decoder. The ASPP module captures multi-scale contextual features via dilated convolutions at multiple rates. We study four encoder configurations across our ablation: ResNet-34 (v3), ResNet-50 (v4 and v5-2.5D ablation), and EfficientNet-B4 (v5, v7). ASPP rates are set to $(6, 12, 18)$ in v3/v4 and $(12, 24, 36)$ in v5 and v7 to capture wider geological context.
+
+\subsection{Input Strategy: 1-channel vs 2.5D}
+
+Versions v3 through v5 use a single-channel ($C=1$) seismic amplitude slice. Our final model v7 adopts a \emph{2.5D} input strategy: three consecutive slices (previous, current, next) are stacked as a $C=3$ input tensor, providing inter-slice continuity context. This design is compatible with 3-channel ImageNet pretrained weights, enabling direct weight transfer. The 2.5D strategy is also tested with a ResNet-50 encoder (v5-2.5D ablation) to isolate the contribution of encoder capacity vs.\ spatial context.
+
+\subsection{Directional Training Strategy}
+
+Versions v3 uses inline-only training. From v4 onward, inline and crossline slices are combined using \texttt{ConcatDataset}, exposing the model to both viewing directions simultaneously. This is the single most impactful intervention across all versions.
+
+\subsection{Loss Function}
+
+Version 3 uses $0.5\,\mathcal{L}_{CE} + 0.5\,\mathcal{L}_{Dice}$. Versions v4, v5, and v7 use:
+\begin{equation}
+\mathcal{L} = 0.4\,\mathcal{L}_{CE}^{LS} + 0.3\,\mathcal{L}_{Dice} + 0.3\,\mathcal{L}_{Focal}(\gamma{=}2)
+\end{equation}
+where $\mathcal{L}_{CE}^{LS}$ applies label smoothing ($\varepsilon=0.1$) with Effective Number of Samples class weights~\cite{cui2019}, and $\mathcal{L}_{Focal}$~\cite{lin2017} with $\gamma=2$ focuses training on hard minority examples such as S5. The v5-2.5D ablation uses $0.5\,\mathcal{L}_{Focal} + 0.5\,\mathcal{L}_{Dice}$.
+
+\subsection{S4 Crossline Oversampling}
+
+Analysis of v4 results shows that S4~(Zechstein) achieves 81.78\% IoU on Test1 but only 23.87\% on Test2. Version v5 and v7 apply a \texttt{WeightedRandomSampler} with $3\times$ weight for crossline slices where S4 pixels exceed 5\% of the slice area.
+
+\subsection{Augmentation and Regularization}
+
+All versions apply horizontal flip, brightness/contrast jitter, and Gaussian noise. From v4 onward: ElasticTransform, ShiftScaleRotate, and CoarseDropout. Versions v5 and v7 additionally apply Mixup ($\alpha=0.2$, 50\% probability), which promotes smoother decision boundaries at the S3/S4/S5 interface.
+
+\subsection{Training Configuration}
+
+All models use AdamW with CosineAnnealingWarmRestarts ($T_0=25$, $\eta_{\min}=10^{-6}$), gradient clipping at $\text{max\_norm}=1.0$, and AMP on an NVIDIA RTX~4070 GPU. The v5-2.5D ablation also uses gradient accumulation ($\times4$, effective batch~32) and early stopping (patience~25). Best checkpoints are selected on inline validation mIoU. Inference uses TTA (average of original and horizontally flipped softmax outputs).
+
+% ─────────────────────────────────────────────────────────────
+\section{Experimental Results}
+\label{sec:results}
+
+\subsection{Main Results}
+
+Table~\ref{tab:main} presents quantitative results across all configurations. The v3 to v4 transition delivers the largest single improvement: Test2 mIoU rises from 27.10\% to 68.38\% ($+41.3$~pp) through multi-directional training alone. The EfficientNet-B4 encoder in v5 adds further gains. Our final model v7, combining EfficientNet-B4 with 2.5D input, achieves the best results on every metric: combined mIoU 79.26\%, PA 94.13\%, MCA 89.75\%. The 2.5D ablation with ResNet-50 (v5-2.5D) underperforms all EfficientNet configurations, confirming that encoder capacity is a necessary condition for 2.5D context to be beneficial.
+
+\begin{table}[!t]
+\caption{Quantitative Comparison Across All Configurations (\%)}
+\label{tab:main}
+\centering
+\begin{tabular}{lccccc}
+\toprule
+Metric & v3 & v4 & v5 & v5-2.5D$^\dagger$ & \textbf{v7} \\
+\midrule
+Test1 mIoU    & 64.46 & 76.39 & 78.09 & 75.77 & \textbf{78.81} \\
+Test1 PA      & 87.27 & 92.73 & 93.03 & 91.92 & \textbf{93.56} \\
+Test1 MCA     & —     & 83.37 & 87.55 & 89.48 & \textbf{90.93} \\
+Test2 mIoU    & 27.10 & 68.38 & 67.98 & 65.85 & \textbf{69.86} \\
+Test2 PA      & 63.63 & 94.29 & 94.39 & 93.79 & \textbf{94.69} \\
+Test2 MCA     & —     & 77.30 & 77.30 & 75.98 & \textbf{79.63} \\
+Combined mIoU & 40.12 & 76.79 & 77.99 & 75.82 & \textbf{79.26} \\
+Combined Dice & 54.53 & 85.94 & 86.93 & 85.36 & \textbf{87.75} \\
+Combined PA   & 69.53 & 93.51 & 93.71 & 92.86 & \textbf{94.13} \\
+Combined MCA  & 54.78 & 84.02 & 87.21 & 87.56 & \textbf{89.75} \\
+\midrule
+\multicolumn{6}{l}{$^\dagger$ Early stopping at epoch 54/100.} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Training Dynamics}
+
+Fig.~\ref{fig:curves} shows the training and validation curves for v7. The loss converges steadily over 100 epochs, with the characteristic warm-restart oscillations of CosineAnnealingWarmRestarts visible in the learning rate schedule. Validation mIoU continues to improve gradually through the final restart cycle, reaching 0.66 at epoch 100, indicating that the model did not overfit.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{training_curves_v6.png}
+\caption{Training dynamics for v7 (EfficientNet-B4, 2.5D, 100 epochs). Left: train and validation loss. Center: validation mIoU and Dice score. Right: CosineAnnealingWarmRestarts learning rate schedule ($T_0=25$). Validation metrics continue improving across all four restart cycles without evidence of overfitting.}
+\label{fig:curves}
+\end{figure}
+
+\subsection{Per-class Analysis}
+
+Table~\ref{tab:perclass} and Fig.~\ref{fig:perclass} detail per-class IoU on the combined test set. All classes improve substantially from v3 to v7. The largest absolute gains are in S5~(Under Zechstein: $+54.1$~pp) and S1~(Lower North Sea: $+47.7$~pp). S4~(Zechstein) achieves 79.22\% combined IoU in v7, its highest value across all versions. S3~(Scruff) remains the most challenging class at 60.73\% due to its geometrically thin and laterally discontinuous nature.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{per_class_metrics_v6.png}
+\caption{Per-class IoU and Dice scores on the combined test set for v7. The dashed lines indicate mIoU (0.793) and mean Dice (0.878). S4~(Zechstein, 0.792 IoU) and S5~(Under Zechstein, 0.625 IoU) show the largest improvements over the v3 baseline (+28.4~pp and +54.1~pp respectively).}
+\label{fig:perclass}
+\end{figure}
+
+\begin{table}[!t]
+\caption{Per-Class IoU on Combined Test Set (\%)}
+\label{tab:perclass}
+\centering
+\begin{tabular}{lccccc}
+\toprule
+Class & v3 & v4 & v5 & v5-2.5D$^\dagger$ & \textbf{v7} \\
+\midrule
+S0 Upper NS    & 58.17 & 95.10 & 95.22 & 94.05 & \textbf{95.72} \\
+S1 Lower NS    & 34.60 & 81.82 & 80.98 & 79.02 & \textbf{82.65} \\
+S2 Rijnland    & 60.73 & 93.18 & 94.07 & 93.93 & \textbf{94.78} \\
+S3 Scruff      & 28.02 & 60.70 & 62.30 & 55.78 & \textbf{60.73} \\
+S4 Zechstein   & 50.87 & 77.60 & 76.43 & 74.59 & \textbf{79.22} \\
+S5 Under Zech  & 8.35  & 52.35 & 58.94 & 57.53 & \textbf{62.48} \\
+\midrule
+\multicolumn{6}{l}{$^\dagger$ Early stopping at epoch 54/100.} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Crossline Generalization Gap}
+
+Table~\ref{tab:gap} compares per-class IoU between Test1 (inline) and Test2 (crossline) for v5, v5-2.5D, and v7. The S4~(Zechstein) crossline collapse persists in all versions. In v7, S4 achieves 83.62\% on Test1 but only 17.76\% on Test2, a gap of $-65.9$~pp. Notably, v7 improves the absolute Test2 S4 IoU from 15.23\% (v5) to 17.76\%, and from 11.31\% (v5-2.5D) to 17.76\%, suggesting that the EfficientNet-B4 + 2.5D combination provides some additional discriminative capacity for this class. However, the fundamental anisotropy problem remains unresolved by 2D and 2.5D approaches.
+
+\begin{table}[!t]
+\caption{Per-Class IoU: Test1 (Inline) vs.\ Test2 (Crossline) (\%)}
+\label{tab:gap}
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcccccc}
+\toprule
+ & \multicolumn{2}{c}{v5 (EffB4-1ch)} & \multicolumn{2}{c}{v5-2.5D (Res50)} & \multicolumn{2}{c}{\textbf{v7 (EffB4-2.5D)}} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+Class & T1 & T2 & T1 & T2 & T1 & T2 \\
+\midrule
+S0 Upper NS   & 94.80 & 95.55 & 94.34 & 93.81 & \textbf{95.71} & \textbf{95.72} \\
+S1 Lower NS   & 80.31 & 81.61 & 78.32 & 79.69 & \textbf{82.05} & \textbf{83.23} \\
+S2 Rijnland   & 93.28 & 94.71 & 93.20 & 94.52 & \textbf{94.55} & \textbf{94.97} \\
+S3 Scruff     & 64.88 & 58.55 & 56.30 & 54.94 & \textbf{63.41} & 56.89 \\
+S4 Zechstein  & 80.92 & 15.23 & 78.92 & 11.31 & \textbf{83.62} & \textbf{17.76} \\
+S5 Under Zech & 54.35 & 62.20 & 53.54 & 60.86 & 53.49 & \textbf{70.59} \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\subsection{Segmentation Visualization}
+
+Fig.~\ref{fig:seg} shows side-by-side segmentation results for v7 on both inline and crossline test slices. The model correctly delineates all six classes on inline sections with high spatial fidelity. On crossline sections, S0, S1, S2, and S5 are well-segmented, while S4 is frequently misclassified or absent, consistent with the quantitative results.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{segmentation_comparison_v6.png}
+\caption{Segmentation comparisons for v7 on Test1 (inline, rows 1--3) and Test2 (crossline, rows 4--6). Each row shows the seismic input (left), ground truth facies map (center), and v7 prediction (right). Inline segmentation is highly accurate across all classes. On crossline sections, S4~(Zechstein, orange) is the primary source of error, frequently confused with S5~(Under Zechstein, red).}
+\label{fig:seg}
+\end{figure}
+
+\subsection{Confusion Matrix Analysis}
+
+Fig.~\ref{fig:cm} shows the combined confusion matrix for v7. The normalized matrix reveals that S0, S1, S2 achieve diagonal dominance above 0.91. S3~(Scruff) shows 9\% confusion with S2 and S5 due to its thin lateral extent. S4~(Zechstein) shows 9\% leakage into S3 and 6\% into S5. S5 achieves 92\% accuracy, its best performance across all versions.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{confusion_matrix_v6.png}
+\caption{Confusion matrices for v7 on the combined test set (Test1 + Test2). Left: raw pixel counts. Right: row-normalized rates. S4~(Zechstein) leaks primarily into S3 and S5; this leakage is dominated by the crossline test split where the evaporite layer is geometrically compressed.}
+\label{fig:cm}
+\end{figure}
+
+\subsection{Comparison with Baselines}
+
+Table~\ref{tab:baseline} compares v7 against the Alaudah et al.~\cite{alaudah2019} baselines. v7 achieves PA of 94.13\% and MCA of 89.75\%, surpassing Section CNN (92.2\%, 83.9\%) on both metrics.
+
+\begin{table}[!t]
+\caption{Comparison with Alaudah et al.~\cite{alaudah2019} Baselines (Combined)}
+\label{tab:baseline}
+\centering
+\begin{tabular}{lccc}
+\toprule
+Method & PA (\%) & MCA (\%) & mIoU (\%) \\
+\midrule
+Patch CNN~\cite{alaudah2019}    & 90.5 & 81.7 & N/A \\
+Section CNN~\cite{alaudah2019}  & 92.2 & 83.9 & N/A \\
+DeepLabV3+ v3 (ours) & 69.5 & 54.8 & 40.1 \\
+DeepLabV3+ v4 (ours) & 93.5 & 84.0 & 76.8 \\
+DeepLabV3+ v5 (ours) & 93.7 & 87.2 & 78.0 \\
+DeepLabV3+ v5-2.5D$^\dagger$ & 92.9 & 87.6 & 75.8 \\
+\textbf{DeepLabV3+ v7 (ours)} & \textbf{94.1} & \textbf{89.8} & \textbf{79.3} \\
+\midrule
+\multicolumn{4}{l}{$^\dagger$ Early stopping at epoch 54/100.} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ─────────────────────────────────────────────────────────────
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Impact of Directional Training}
+
+The most impactful single design decision across all versions is multi-directional training (v3~$\to$~v4, $+41.3$~pp Test2 mIoU). This confirms that the crossline generalization failure in v3 is a data coverage problem: the model has never seen the geological structures from the orthogonal viewing direction. All subsequent improvements build on this foundation.
+
+\subsection{Encoder Capacity and 2.5D Input: A Necessary Combination}
+
+A key finding from our ablation is that the benefit of 2.5D context is \emph{conditioned on encoder capacity}. The v5-2.5D variant (ResNet-50, 2.5D) performs worse than v5 (EfficientNet-B4, 1-channel) in combined mIoU (75.82\% vs.\ 77.99\%) and converges prematurely at epoch~54. In contrast, v7 (EfficientNet-B4, 2.5D) achieves the best results of all versions, with $+1.3$~pp combined mIoU over v5. This pattern suggests that a strong encoder is a prerequisite for the model to exploit neighbouring-slice continuity: a weaker encoder may lack the representational capacity to discriminate between the spatially correlated channels and the subtle inter-slice differences that convey geological layer boundaries.
+
+\subsection{The Persistent S4 Zechstein Crossline Problem}
+
+Despite targeted interventions (oversampling, Mixup, stronger encoder, 2.5D context), S4~(Zechstein) crossline IoU remains below 18\% across all versions. We attribute this to the \emph{geometric anisotropy} of evaporite sequences: in inline view, Zechstein appears as a broad, laterally continuous reflector that is visually distinct from adjacent layers. In the crossline direction, the same formation is geometrically compressed and its amplitude pattern strongly resembles the underlying S5 layer. This is a structural limitation of 2D and pseudo-3D approaches. A fully 3D volumetric architecture with explicit depth-axis modeling, such as a 3D U-Net or attention-based 3D encoder, would be the most principled solution.
+
+\subsection{Limitations}
+
+All experiments are conducted on a single dataset (F3 Block Netherlands), limiting generalizability. Models process slices independently or with minimal context, without access to full 3D spatial information. Uncertainty quantification is absent, which is important for practical deployment. The computational cost of EfficientNet-B4 with $256\times256$ input (v7) requires approximately 14~seconds per epoch on an RTX~4070.
+
+% ─────────────────────────────────────────────────────────────
+\section{Conclusion}
+\label{sec:conclusion}
+
+We presented a progressive ablation study of DeepLabV3+ for seismic facies segmentation on the F3 Block Netherlands dataset. Our final model, v7 (EfficientNet-B4 encoder, 2.5D three-channel neighbouring-slice input, triple loss with label smoothing, S4 oversampling, Mixup augmentation), achieves a combined mIoU of 79.26\%, PA of 94.13\%, and MCA of 89.75\%, surpassing all prior configurations and the Alaudah et al.\ baselines.
+
+The key findings of this study are: (1) multi-directional training is the dominant factor for crossline generalization; (2) the combination of a strong encoder with 2.5D spatial context yields consistent improvements, but 2.5D context alone is insufficient without adequate encoder capacity; (3) the S4~(Zechstein) crossline classification problem is structurally resistant to 2D and pseudo-3D approaches, attributable to geometric anisotropy of evaporite sequences. Future work will explore 3D volumetric architectures, physics-guided loss terms, and uncertainty-aware prediction.
+
+% ─────────────────────────────────────────────────────────────
+\begin{thebibliography}{10}
+
+\bibitem{alaudah2019}
+Y.~Alaudah, P.~Michalowicz, M.~Alfarraj, and G.~AlRegib,
+``A machine-learning benchmark for facies classification,''
+\textit{Interpretation}, vol.~7, no.~3, pp.~SE175--SE187, 2019.
+
+\bibitem{chen2018}
+L.-C.~Chen, Y.~Zhu, G.~Papandreou, F.~Schroff, and H.~Adam,
+``Encoder-decoder with atrous separable convolution for semantic image segmentation,''
+in \textit{Proc. ECCV}, 2018, pp.~801--818.
+
+\bibitem{saha2025}
+S.~Saha and R.~Whitaker,
+``AdaSemSeg: An adaptive few-shot semantic segmentation of seismic facies,''
+\textit{IEEE Trans. Geosci. Remote Sens.}, vol.~63, 2025.
+
+\bibitem{chikhaoui2024}
+K.~Chikhaoui and M.~Alfarraj,
+``Self-supervised learning for efficient seismic facies classification,''
+\textit{Geophysics}, vol.~89, no.~5, pp.~IM61--IM76, 2024.
+
+\bibitem{zu2024}
+S.~Zu, P.~Zhao, C.~Ke, and C.~Junxing,
+``ResACEUnet: An improved transformer UNet model for 3D seismic fault detection,''
+\textit{J. Geophys. Res. Mach. Learn. Comput.}, vol.~1, 2024.
+
+\bibitem{zhou2025}
+X.~Zhou \textit{et al.},
+``Seismic facies classification based on multilevel wavelet transform and multiresolution transformer,''
+\textit{IEEE Trans. Geosci. Remote Sens.}, vol.~63, 2025.
+
+\bibitem{gao2025}
+H.~Gao \textit{et al.},
+``cigFacies: A massive-scale benchmark dataset of seismic facies and its application,''
+\textit{Earth Syst. Sci. Data}, vol.~17, pp.~595--609, 2025.
+
+\bibitem{cui2019}
+Y.~Cui, M.~Jia, T.-Y.~Lin, Y.~Song, and S.~Belongie,
+``Class-balanced loss based on effective number of samples,''
+in \textit{Proc. CVPR}, 2019, pp.~9268--9277.
+
+\bibitem{lin2017}
+T.-Y.~Lin, P.~Goyal, R.~Girshick, K.~He, and P.~Dollar,
+``Focal loss for dense object detection,''
+in \textit{Proc. ICCV}, 2017, pp.~2980--2988.
+
+\bibitem{xu2025}
+M.~Xu, L.~Zhao, M.~Liu, and J.~Geng,
+``Machine learning-based seismic subsurface characterization: The state of the art and future perspectives,''
+\textit{J. Geophys. Res. Mach. Learn. Comput.}, vol.~2, 2025.
+
+\end{thebibliography}
+
+\end{document}

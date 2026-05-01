@@ -1,0 +1,31 @@
+# macOS
+.DS_Store
+
+# Python sanal ortam
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Veri seti (büyük .npy dosyaları — repo dışında tutulur)
+data/
+
+# Eğitilmiş model checkpoint'leri
+checkpoints/
+*.pth
+*.pt
+
+# Editor
+.vscode/
+.idea/
+.claude/
+
+# Büyük PDF çıktıları (kaynak dosyalar — .tex, .docx — tutulur)
+docs/**/*.pdf
+
+# Log / geçici
+*.log
+*.tmp

@@ -1,0 +1,38 @@
+===========================================================================
+ VERSIYON KARSILASTIRMA
+===========================================================================
+  v5 metrikleri JSON'dan yuklendi.
+  v3 metrikleri sabit degerlerden.
+
+Metrik                         |         v3 |         v5 |         v6
+---------------------------------------------------------------------------
+Test1 mIoU (inline)            |     0.6446 |     0.7577 |     0.7513
+Test2 mIoU (crossline)         |     0.2710 |     0.6585 |     0.6999 <--
+Combined mIoU                  |     0.4012 |     0.7582 |     0.7692 <--
+Combined Dice                  |     0.5453 |     0.8536 |     0.8624 <--
+Combined PA                    |     0.6953 |     0.9286 |     0.9298 <--
+===========================================================================
+
+Per-class IoU (Combined) — v6:
+  S0 Upper NS            : IoU=0.9365  Dice=0.9672
+  S1 Lower NS            : IoU=0.7798  Dice=0.8763
+  S2 Rijnland            : IoU=0.9405  Dice=0.9694
+  S3 Scruff              : IoU=0.5697  Dice=0.7259
+  S4 Zechstein           : IoU=0.7583  Dice=0.8626
+  S5 Under Zech          : IoU=0.6304  Dice=0.7733
+
+===========================================================================
+ v6 FINAL SONUCLAR
+...
+  v6 = v5.3 metodoloji + EfficientNet-B4 + ASPP(12,24,36) + CosineWarmRestarts
+
+  ===========================================================================
+ v6 FINAL SONUCLAR
+===========================================================================
+  Test1 mIoU   : 75.13%  (inline)
+  Test2 mIoU   : 69.99%  (crossline — genelleme)
+  Combined mIoU: 76.92%
+  Combined Dice: 86.24%
+  Combined PA  : 92.98%
+
+  v6 = v5.3 metodoloji + EfficientNet-B4 + ASPP(12,24,36) + CosineWarmRestarts
