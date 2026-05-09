@@ -23,9 +23,6 @@ checkpoints/
 .idea/
 .claude/
 
-# Büyük PDF çıktıları (kaynak dosyalar — .tex, .docx — tutulur)
-docs/**/*.pdf
-
 # Log / geçici
 *.log
 *.tmp
