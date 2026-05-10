@@ -1,0 +1,43 @@
+{
+  "test1": {
+    "n_slices": 200,
+    "n_slices_with_c4": 200,
+    "c4_coverage_pct": 17.086643730245306,
+    "mean_class4_iou": 0.800888635568244,
+    "median_class4_iou": 0.8116485844773562,
+    "std_class4_iou": 0.0719513989360315,
+    "confusion_distribution_pct": [
+      2.3463301032667467,
+      0.012817897779638892,
+      5.381552638669846,
+      7.730682052945939,
+      81.2875881169084,
+      3.241029190429434
+    ]
+  },
+  "test2": {
+    "n_slices": 200,
+    "n_slices_with_c4": 101,
+    "c4_coverage_pct": 0.7855404391373854,
+    "mean_class4_iou": 0.12212240769073414,
+    "median_class4_iou": 0.06863442389745976,
+    "std_class4_iou": 0.12671856422517044,
+    "confusion_distribution_pct": [
+      0.05648403495364986,
+      0.0,
+      0.695252018473602,
+      22.6571585207828,
+      17.78831777253547,
+      58.80278765325448
+    ]
+  },
+  "class_names": [
+    "Upper NS",
+    "Lower NS",
+    "Rijnland",
+    "Scruff",
+    "Zechstein",
+    "Under Zech"
+  ],
+  "interpretation": "Test1 vs Test2 IoU fark\u0131, tuz tabakas\u0131n\u0131n y\u00f6n ba\u011f\u0131ml\u0131 (anisotropic) morfolojisinden kaynaklan\u0131r. Inline y\u00f6n\u00fcnde Class 4 daha s\u00fcrekli/blok yap\u0131dad\u0131r; crossline y\u00f6n\u00fcnde k\u0131vr\u0131m/diapir yap\u0131lar\u0131 \u00f6ne \u00e7\u0131kar. E\u011fitim verisi inline-bask\u0131n anatomik temsil sundu\u011fu i\u00e7in model crossline'a genelleyemez. \u00c7\u00f6z\u00fcm: domain adaptation veya data augmentation'da y\u00f6n-bilincinde d\u00f6n\u00fc\u015f\u00fcmler."
+}
