@@ -207,14 +207,17 @@ Test verisinin val'den **kolay** çıkması. Olası nedenler:
 - (c) TTA testte var, val'de yok (1–2 puan açıklar — 12 puanı değil)
 - (d) Sınıf 4 (Zechstein) val bölgesinde **var ama test bölgesinde dağılımı farklı**
 
-### Sorun 2: Methodology bug — Contiguous block val
-`val_inline_idx = np.arange(320, 401)` son %20'lik düz blok. F3'ün son inline bölgesinde Zechstein dağılımı sistematik farklıysa (ki muhtemelen öyle), val "best epoch" seçimi bozuk olur.
+### Sorun 2: Methodology bug — Contiguous block val ✅ DÜZELTİLDİ (Yol A)
+~~`val_inline_idx = np.arange(320, 401)` son %20'lik düz blok.~~  
+**Düzeltildi:** `val_inline_idx = np.arange(160, 240)` — ortadaki 80 inline. Train iki blok halinde: `[0, 158) ∪ [242, 401)`.
 
-### Sorun 3: Methodology bug — 3D crossline leakage
-`train_xline_idx = np.arange(0, 601)` tüm crossline'lar. Her crossline image'ı (n_inlines, depth) shape'inde — yani **val_inline_idx'teki her piksel her crossline eğitim örneğinde mevcut**. Notebook bunu kabul ediyor ama düzeltmemiş.
+### Sorun 3: Methodology bug — 3D crossline leakage ✅ DÜZELTİLDİ (Yol A)
+~~`train_xline_idx = np.arange(0, 601)` tüm crossline'lar — val pikselleri içeriyor.~~  
+**Düzeltildi:** `train_inline_mask` boolean array; F3Dataset25D `_get_slice` axis=1 modunda val pikselleri xline image'dan çıkarılıyor. Test2 maskelenmedi (ayrı volume).
 
-### Sorun 4: Methodology bug — 2.5D komşu sızıntısı
-Val inline 320'nin 3 kanalı = [319, 320, 321]. 319 train tarafında. Her val örneğinin %66'sı (2/3 kanal) train'den.
+### Sorun 4: Methodology bug — 2.5D komşu sızıntısı ✅ DÜZELTİLDİ (Yol A)
+~~Val inline 320'nin 3 kanalı = [319, 320, 321]. 319 train'de.~~  
+**Düzeltildi:** `BUFFER = 2` — train val sınırına 2 inline yaklaşamaz, 2.5D komşu sızıntısı engellenmiş.
 
 ### Sorun 5: Bilimsel rigor eksikleri
 - **Tek seed (42)**, error bar yok — variance ölçülmemiş
@@ -256,7 +259,10 @@ class F3Dataset25D(Dataset):
 
 **Beklenen etki:** val mIoU 2–4 puan düşer (gerçekçileşir), test1/test2 ±1 puan oynar. Sunumda "öncesi/sonrası" tablosu güçlü demonstration.
 
-**Durum:** ⏳ Henüz uygulanmadı. Sıradaki kod görevi.
+**Durum:** ✅ **UYGULANDI** (2026-05-09) — git commit `0955d57`. Notebook hücreleri:
+- `cell-8` (md), `cell-9` (split + class weights), `cell-11` (F3Dataset25D + train_inline_mask), `cell-12` (compute_slice_weights mask aware), `cell-19` (md), `cell-20` (CHECKPOINT_PATH/BEST_MODEL_PATH → `_fixed`), `cell-22` (JSON output → `deeplabv3plus_v7_fixed_metrics.json`), `cell-31` (md başlık 4-sütun), `cell-32` (v3/v5/v7-broken/v7-fixed delta tablo)
+
+**Eğitim devam ediyor** (başka bilgisayarda). Eski v7 metrikleri (`deeplabv3plus_v7_metrics.json`) ve eski best model (`checkpoints_v7/deeplabv3plus_v7_best.pth`) korunuyor; yeni sonuçlar `_fixed` ekleriyle ayrı dosyalara yazılacak. Sunumda "öncesi vs sonrası" tablosu için ikisi de gerekli.
 
 ---
 
@@ -280,11 +286,23 @@ Bulgular:
 
 ## 9. Future Work Adayları (henüz karar verilmedi)
 
-### Aday 1: Seismic Foundation Model (SFM) — arXiv 2309.02791
-- 192 survey'den 2.3M slice ile MAE pretrain ViT
+### Aday 1: Foundation Model Fine-tuning (SFM veya GFM) — ARAŞTIRILDI
+**SFM (arXiv 2309.02791) — Sheng et al. 2023-2024:**
+- Repo: https://github.com/shenghanlin/SeismicFoundationModel (MIT, 153⭐)
+- ⚠️ Ağırlıklar **Çin hosting** (Baidu/USTC) — Türkiye'den problem olabilir
+- ⚠️ **1-channel grayscale** bekliyor — 2.5D 3-kanallı pipeline'la uyumsuz
+- ⚠️ **smp ile uyumlu değil** — kendi ViT + decoder framework'ü
+- ⚠️ Eski stack: PyTorch 1.8.1, CUDA 11.1
 - Parihaka facies mIoU 0.798 (DeepLab 0.556'yı geçti)
-- ⚠️ Public weights/code mevcudiyeti **teyit edilmemiş**
 - Effort: 1–2 gün entegrasyon + 8–12 saat retrain
+
+**ThinkOnward GFM — DAHA İYİ ALTERNATİF:**
+- Repo: https://github.com/thinkonward/geophysical-foundation-model
+- HF: https://huggingface.co/thinkonward/geophysical-foundation-model (Apache 2.0)
+- ✅ Hugging Face hosting — 5 dakikada yüklenir
+- ✅ Modern PyTorch, ViT-MAE (trace masking)
+- ⚠️ Yine 1-channel grayscale (aynı uyumsuzluk)
+- F3 facies için bağımsız sonuç **yok** — özgünlük fırsatı (tezde "F3 + foundation model ilk fine-tune")
 
 ### Aday 2: Attention U-Net — Geophysics 2024
 - F3+Penobscot SOTA iddiası
@@ -315,11 +333,27 @@ Methodology fix (Yol A) + 3–4 mimari ablation tek eğitim döngüsünde ≈ 32
 
 ---
 
-## 10. Bekleyen Kararlar
+## 10. Bekleyen Kararlar / Sıradaki Adımlar
 
-1. **Birleşik plan mı (methodology fix + arch ablation, ~32 saat GPU)** **yoksa minimal mi (sadece Attention U-Net + methodology fix, ~12 saat)?**
-2. **SFM** GitHub'da public weights var mı, araştırılsın mı?
-3. Architecture ablation'a kaç mimari dahil olsun (3 mü 5 mi)?
+**Şu anda (eğitim devam ederken):**
+1. **SOTA literatür karşılaştırma tablosu derlemek** — sunum için kritik (Alaudah 2019, Liu 2020, Shi 2019, Civitarese 2019, SFM, Attention U-Net 2024, AdaSemSeg 2025 sayıları)
+2. **Limitations bölümü** akademik metni (Türkçe paragraflar)
+3. **PROJE_PLANI.md** güncellemesi (hâlâ U-Net + 256 + 50 epoch yazıyor, gerçek v7'ye uydur)
+
+**Eğitim biter bitmez:**
+4. v7-fixed sayılarını yorumla — "öncesi vs sonrası" tablosu üret
+5. Class 4 (Zechstein) Test2 IoU=0.18 felaketi için **error analysis görselleştirme** kodu (inline vs crossline morfoloji karşılaştırma, hata heatmap)
+
+**Eğer vakit kalırsa (Hafta 2-3):**
+6. **Multi-seed** (seed 42/43/44 → mean±std) — single seed eleştirisini kapat
+7. **Mini ablation** (TTA-off, Mixup-off, single-channel) — 3 hızlı koşu
+8. **Architecture ablation** (Unet++, MAnet) — methodology-fix üzerinde
+9. **ThinkOnward GFM fine-tune** — yüksek ödül, yüksek risk; SOTA tablosu sonrası karar
+
+**Reddedilen / Future Work'te bırakılan:**
+- Tam 3D mimari (literatür desteklemiyor — Bölüm 8)
+- 5-fold CV (over-engineering)
+- Domain adaptation (4-5 günlük iş, future work slaytında)
 
 ---
 
@@ -329,8 +363,8 @@ Methodology fix (Yol A) + 3–4 mimari ablation tek eğitim döngüsünde ≈ 32
 - **[1–3] Kurulum:** imports, device, paths (`checkpoints_v7/`, `results/figures/`, `results/metrics/`)
 - **[4–5] Veri yükleme:** Zenodo download fallback'li
 - **[6–7] EDA:** sınıf dağılımı, örnek kesit görselleştirme
-- **[8–9] Train/val split + class weights** — 🐛 **Sorun 2 ve 3 burada**
-- **[10–12] F3Dataset25D + WeightedRandomSampler** — 🐛 **Sorun 3 ve 4 burada**
+- **[8–9] Train/val split + class weights** — ✅ **Yol A uygulandı:** middle val [160,240) + ±2 buffer + train_inline_mask
+- **[10–12] F3Dataset25D + WeightedRandomSampler** — ✅ **Yol A uygulandı:** train_inline_mask axis=1 cropping
 - **[13–14] Model:** `smp.DeepLabV3Plus(encoder='efficientnet-b4', ...)`
 - **[15–16] Loss/Mixup/Optimizer/Scheduler:** triple loss kombinasyonu
 - **[17–18] Metrik fonksiyonları:** confusion matrix tabanlı IoU, Dice, PA
@@ -341,15 +375,28 @@ Methodology fix (Yol A) + 3–4 mimari ablation tek eğitim döngüsünde ≈ 32
 
 ---
 
-## 12. Kozmetik Düzeltmeler (Tamamlandı)
+## 12. Tamamlanan Düzeltmeler
 
-v6 → v7 isim/path tutarsızlıkları giderildi:
+### 12.1 Kozmetik (v6→v7 isim/path tutarsızlıkları)
 - `checkpoints_v6` → `checkpoints_v7`
 - `results_v6/{figures,metrics}` → `results/{figures,metrics}` (README ile uyumlu)
 - Tüm matplotlib başlıklarında "v6" → "v7"
 - Tüm PNG dosya adlarında "v6" → "v7"
 - cell-32 v7 açıklaması: `"EfficientNet-B4 + 2.5D Multi-View + Focal+Dice + TTA"`
 - cell-32 path'leri: `results_v5/metrics/...` → `results/metrics/...`
+
+### 12.2 Methodology Fix Yol A (2026-05-09, commit `0955d57`)
+- **cell-8** (md): yeni split açıklaması — 3 bug ve fixleri
+- **cell-9** (kod): val=[160,240), ±2 buffer, train_inline_mask boolean array, class weights yeni train indices'ten
+- **cell-11** (kod): F3Dataset25D class'a `train_inline_mask` parametresi; axis=1 modunda val pikselleri image'dan çıkarılıyor; sadece train_xline_ds maskelendi
+- **cell-12** (kod): compute_slice_weights mask aware (sampling weight gerçek eğitim image'ı ile tutarlı)
+- **cell-19** (md): eğitim açıklaması güncellendi
+- **cell-20** (kod): `BEST_MODEL_PATH` ve `CHECKPOINT_PATH` → `..._fixed_*.pth` (eski model korunur)
+- **cell-22** (kod): JSON çıktı → `deeplabv3plus_v7_fixed_metrics.json`; split bilgisi de JSON'a yazılır
+- **cell-31** (md): "v3 / v5 / v7-broken / v7-fixed" 4-sütun başlık
+- **cell-32** (kod): 4-sütun karşılaştırma + methodology fix delta tablosu
+
+**Eğitim devam ediyor.** Sonuçlar `results/metrics/deeplabv3plus_v7_fixed_metrics.json`'a yazılacak.
 
 ---
 
@@ -372,10 +419,10 @@ v6 → v7 isim/path tutarsızlıkları giderildi:
 ## 14. Beklenen Zorlu Sorular ve Hazır Cevaplar
 
 1. **"Val %66, test %79 — bu fark nasıl?"**  
-   → Val contiguous blok lokasyon bias + TTA testte var val'de yok. Düzeltilmiş split (Yol A) ile yeniden koşacağız.
+   → Val contiguous blok lokasyon bias + TTA testte var val'de yok. **Yol A uygulandı**: val ortaya kaydırıldı, ±2 buffer, xline cropping. Yeni v7-fixed sayıları "öncesi vs sonrası" tablosunda.
 
 2. **"Crossline'lar val inline bölgesinden geçiyor mu?"**  
-   → Evet, biliyorum. Yol A'da xline cropping ekledim. Öncesi/sonrası tablo gösterilecek.
+   → Eski v7'de evet — kabul ettim, **düzelttim**. Yol A'da `train_inline_mask` ile xline image'lar val pikselleri hariç cropped. v7-fixed bu temiz halinde.
 
 3. **"Neden DeepLabV3+, U-Net değil?"**  
    → ASPP ile multi-scale context — sismik tabakaların farklı kalınlıkları için kritik. Architecture ablation tablosu da koyacağım.
@@ -445,17 +492,33 @@ sismik-proje/
 
 ## 16. Yeni Yapay Zeka Modeline Görev İsteği
 
-Yukarıdaki bağlamla şu konularda yardım isteyebilirsin:
-- Methodology fix kodunu (cell-9 + cell-11) tamamen yeniden yazmak
-- Architecture ablation için training loop'u parametrize etmek
-- SOTA literatür karşılaştırma tablosunu derlemek (Alaudah 2019, Liu 2020, SFM 2023, vb.)
-- Sunum slayt yapısı ve görseller önerisi
-- Limitations bölümü için akademik dürüst dil yazımı
-- Class 4 Test2 başarısızlığı için error analysis görselleştirme kodu (confusion matrix per-region, vb.)
-- Tek-seed riskini azaltmak için lightweight robustness check (örn. seed 42/43/44 farkı)
+Yukarıdaki bağlamla şu konularda yardım isteyebilirsin (öncelik sırasıyla):
+
+**Eğitim devam ederken (paralel):**
+1. **SOTA literatür karşılaştırma tablosu** — Alaudah 2019, Liu 2020, Shi 2019, Civitarese 2019, SFM 2023, Attention U-Net 2024, AdaSemSeg 2025; F3 üzerinde rapor edilen mIoU değerleri
+2. **Limitations** bölümü için akademik Türkçe paragraflar (val split bias, leakage, single seed, class 4 Test2)
+3. **PROJE_PLANI.md** güncellemesi (v3 dönemi U-Net spec → v7 DeepLabV3+ ile değiştir)
+4. **Class 4 Test2 error analysis** kodu (eğitim biter bitmez koşmaya hazır)
+
+**Eğitim bitince:**
+5. v7-fixed sayılarını yorumla; "öncesi vs sonrası" tablosu üret
+6. Multi-seed (42/43/44) için lightweight koşu planı
+7. Mini ablation (TTA-off, Mixup-off, single-channel)
+8. Architecture ablation (Unet++, MAnet) — methodology fix üzerinde
+9. Sunum slaytları (40 dk) — slayt-bazlı detay (her slaytta hangi grafik/cümle)
+
+**Future work (implementasyona girme):**
+10. ThinkOnward GFM fine-tune — yüksek ödül, smp uyumsuz, 1-channel
+11. Domain adaptation — Test2 zayıflığı için, future work slaytında bahset
 
 İstediğin formatta yardım edebilirsin: doğrudan kod, slide outline, akademik metin, vb.
 
 ---
 
-**Son durum (2026-05-09):** v7 mimarisi sabitlendi (combined mIoU 0.7926). v6→v7 kozmetik path/isim tutarsızlıkları temizlendi. Methodology bug'ları (Yol A) henüz uygulanmadı — sıradaki kod görevi. Architecture ablation kararı bekliyor.
+**Son durum (2026-05-09):**
+- v7 mimarisi sabit (eski sayılar: combined mIoU 0.7926, val 0.6617 — paradoks)
+- Kozmetik v6→v7 path/isim düzeltmeleri tamamlandı
+- ✅ **Methodology fix Yol A UYGULANDI** (cells 8, 9, 11, 12, 19, 20, 22, 31, 32 — commit `0955d57`)
+- 🚂 **Eğitim başka bilgisayarda devam ediyor** (3060 Ti, ~1.5–2 saat)
+- 📊 Yeni sonuçlar `results/metrics/deeplabv3plus_v7_fixed_metrics.json`'a yazılacak
+- 🎯 Sıradaki paralel görev: SOTA literatür tablosu derlemesi
