@@ -3,6 +3,7 @@
 
 # Python sanal ortam
 venv/
+.venv/
 __pycache__/
 *.pyc
 *.pyo
