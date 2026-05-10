@@ -48,19 +48,19 @@ Birçok sonraki makale bu **coğrafi split'i kullanmaz**:
 | 12 | Dramsch & Lüthje (SEG) | 2018 | Transfer learning, 9 sınıf | — | — | %92 patch-classification | — | **patch sınıflandırma — semantik segmentasyon değil** |
 | 13 | Zhao 2018 (SEG) | 2018 | Encoder-decoder section | — | — | metrik abstract'ta yok | — | Alaudah'tan önce |
 | **★** | **Bizim v7-broken** (eski) | **2026** | **DeepLabV3+ + EffNet-B4 + 2.5D** | **0.788** | **0.699** | **mIoU 0.793** (FwIoU TBD) | 0.941 | **Alaudah geographic split, methodology bug'lu** |
-| **★** | **Bizim v7-fixed** ⭐ | **2026** | **+ Yol A methodology fix** | **0.7625** | **0.6681** | **mIoU 0.7668 / FwIoU 0.878 / MCA 0.861** | **0.932** | **Alaudah baseline'ını PA/MCA/FwIoU'da geçer** |
+| **★** | **Bizim v7-fixed** | **2026** | **+ Yol A methodology fix** | **0.7625** | **0.6681** | **mIoU 0.7668 / FwIoU 0.878 / MCA 0.861** | **0.932** | **Alaudah baseline'a yakın değerler ⚠️ 320×320 resized eval** |
 
 ---
 
 ## 3. Sunum Slide'ı için "Tek Tablo" Özet (sayfayı tek bir slayta sığdır)
 
-| Yöntem | Yıl | F3'te en yüksek | Split | Karşılaştırılabilir mi? |
-|--------|-----|-----------------|-------|--------------------------|
-| Alaudah section + aug + skip (baseline) | 2019 | PA **0.905**, FwIoU **0.832**, MCA **0.817** | Test1+Test2 (geographic) | ✅ Bizimkiyle aynı split |
-| **Bizim v7-fixed (DeepLabV3+ + EffNet-B4 + 2.5D)** ⭐ | **2026** | mIoU **0.767** / **PA 0.932** / **FwIoU 0.878** / **MCA 0.861** | Alaudah geographic (methodology-fixed) | ✅ **aynı split — PA +2.7, MCA +4.5, FwIoU +4.6 puan üstün** |
-| AdaSemSeg Baseline-1 (target-only) | 2025 | F3 inline FwIoU **0.86**, PA **0.91** | farklı F3 split | ⚠️ farklı split |
-| UmixClick (interactive) | 2025 | mIoU **0.7666**, PA **0.9351** | belirsiz, **kullanıcı yardımı** | ❌ adil değil |
-| Wiley/Hindawi ensemble | 2022 | mIoU **0.9392**, PA **0.9852** | random 60/20/20, **7-sınıf** | ❌ farklı problem |
+| Yöntem | Yıl | F3'te en yüksek | Split | Eval | Karşılaştırılabilir mi? |
+|--------|-----|-----------------|-------|------|--------------------------|
+| Alaudah section + aug + skip (baseline) | 2019 | PA **0.905**, FwIoU **0.832**, MCA **0.817** | Test1+Test2 (geographic) | Orijinal çözünürlük | ✅ Aynı split |
+| **Bizim v7-fixed (DeepLabV3+ + EffNet-B4 + 2.5D)** | **2026** | mIoU **0.767** / **PA 0.932** / **FwIoU 0.878** / **MCA 0.861** | Alaudah geographic (methodology-fixed) | **320×320 resized** | ⚠️ Aynı split, **farklı evaluator çözünürlüğü** — birebir kıyas için orijinal-resolution evaluator gerekli |
+| AdaSemSeg Baseline-1 (target-only) | 2025 | F3 inline FwIoU **0.86**, PA **0.91** | farklı F3 split | farklı | ⚠️ farklı split |
+| UmixClick (interactive) | 2025 | mIoU **0.7666**, PA **0.9351** | belirsiz, **kullanıcı yardımı** | belirsiz | ❌ adil değil |
+| Wiley/Hindawi ensemble | 2022 | mIoU **0.9392**, PA **0.9852** | random 60/20/20, **7-sınıf** | belirsiz | ❌ farklı problem |
 
 ---
 
@@ -68,19 +68,23 @@ Birçok sonraki makale bu **coğrafi split'i kullanmaz**:
 
 ### 4.1 Net Bulgular (v7-fixed sonuçları geldikten sonra)
 
-- **v7-fixed Alaudah baseline'ını üç metrikte de NET olarak geçer** (Combined sayılar):
-  - PA: 0.932 vs Alaudah 0.905 → **+2.69 puan**
-  - MCA: 0.861 vs Alaudah 0.817 → **+4.45 puan**
-  - FwIoU: 0.878 vs Alaudah 0.832 → **+4.64 puan**
-- mIoU sayımız (0.767) "düşük" görünür ama Alaudah bu metriği rapor etmemiştir — kıyas geçersiz.
-- AdaSemSeg Baseline-1 (target-only, F3 inline FwIoU 0.86) bize en yakın kıyasdır; bizim Combined FwIoU 0.878 ile aynı seviyede ama AdaSemSeg farklı F3 split'i kullandığı için doğrudan kıyas yine de tartışmalı.
+- **v7-fixed sayıları Alaudah baseline'a yakın değerlerde görünüyor** (Combined):
+  - PA: 0.932 vs Alaudah 0.905 → **+2.7 puan**
+  - MCA: 0.861 vs Alaudah 0.817 → **+4.5 puan**
+  - FwIoU: 0.878 vs Alaudah 0.832 → **+4.6 puan**
+- ⚠️ **ÖNEMLİ KAVET:** Bizim sayılarımız 320×320 resized space'te hesaplandı; Alaudah orijinal çözünürlükte (701×255 / 401×255) evaluator kullanır. **"Geçtik" iddiasını yapmadan önce aynı evaluator protokolünü çalıştırmak gerekir** — bu original-resolution evaluator henüz yazılmadı.
+- Şu anki dürüst ifade: **"Alaudah baseline seviyesinde, methodology hataları düzeltilmiş, dürüstçe rapor edilmiş bir DeepLabV3+ baseline"**. Original-resolution evaluator yapıldıktan sonra bu kıyas kesinleşecek.
+- mIoU sayımız (0.767) "düşük" görünür ama Alaudah bu metriği rapor etmemiştir — bu yöndeki kıyas zaten geçersiz.
+- AdaSemSeg Baseline-1 (target-only, F3 inline FwIoU 0.86) bize en yakın kıyasdır; bizim Combined FwIoU 0.878 ile yakın bantta ama AdaSemSeg farklı F3 split'i kullandığı için doğrudan kıyas tartışmalı.
 - Wiley 2022 / CONSS 2023'ün 0.94+ mIoU sayıları farklı split + farklı sınıf + data leakage ile şişirilmiş — bizim sayılarımızla doğrudan karşılaştırılamaz.
 
 ### 4.2 Sunum İçin Dürüst İfadeler
 
-> *"DeepLabV3+ + EfficientNet-B4 + 2.5D modelimiz, Alaudah 2019 geographic split'ine sadık kalan az sayıda yöntemden biridir. Combined mIoU 0.79 sayımız, Alaudah'ın 'best baseline'ı (FWIU 0.832, PA 0.905) ile karşılaştırıldığında birebir kıyaslanabilir değil — farklı metrikler. Aynı metrikleri (FWIU, PA, MCA) lokal modelimizden hesaplayarak doğrudan kıyas tablosu üretiyoruz [→ slayt X]."*
+> *"DeepLabV3+ + EfficientNet-B4 + 2.5D modelimiz, Alaudah 2019 geographic split'ine sadık kalan az sayıda yöntemden biridir. Combined mIoU 0.77 sayımız Alaudah'ın 'best baseline'ı (FwIoU 0.832, PA 0.905) ile birebir kıyaslanabilir değil — farklı metrikler. Aynı metrikleri (FwIoU, PA, MCA) lokal modelimizden hesapladığımızda baseline'a yakın değerler elde ediyoruz, ancak evaluator çözünürlük farkı (320×320 vs orijinal) nedeniyle 'geçtik' iddiasını yapmıyoruz — original-resolution evaluator bekleyen iş."*
 
-> *"Literatürde rapor edilen 0.94+ mIoU sayıları (Wiley 2022, CONSS 2023) genellikle rastgele patch split veya farklı sınıf bölünmesi kullanır — Alaudah'ın orijinal coğrafi split'i değil. Bu yüzden bu sayılar bizim 0.79'umuzla doğrudan karşılaştırılamaz."*
+> *"Literatürde rapor edilen 0.94+ mIoU sayıları (Wiley 2022, CONSS 2023) genellikle rastgele patch split veya farklı sınıf bölünmesi kullanır — Alaudah'ın orijinal coğrafi split'i değil. Bu yüzden bu sayılar bizim 0.77'mizle doğrudan karşılaştırılamaz."*
+
+> *"Mevcut çalışma SOTA iddiasında değil. Modern literatür (2025-2026) sismik-spesifik foundation model'lara (SFM, GFM) doğru evrildi. Bizim ImageNet pretrained EfficientNet-B4 yaklaşımımız bu perspektifte baseline seviyesinde, methodology titizliği ile değerlendirilen bir DeepLabV3+ baseline'ı sunar."*
 
 ### 4.3 Eğer Test1/Test2 ayrımı sorulursa
 

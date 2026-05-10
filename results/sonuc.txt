@@ -1,38 +1,88 @@
 ===========================================================================
- VERSIYON KARSILASTIRMA
+ VERSIYON KARSILASTIRMA — F3 Hollanda Sismik Fasiyes Segmentasyonu
 ===========================================================================
-  v5 metrikleri JSON'dan yuklendi.
-  v3 metrikleri sabit degerlerden.
 
-Metrik                         |         v3 |         v5 |         v6
+Metrik                  |    v3   |    v5   |    v6   | v7-broken | v7-fixed
 ---------------------------------------------------------------------------
-Test1 mIoU (inline)            |     0.6446 |     0.7577 |     0.7513
-Test2 mIoU (crossline)         |     0.2710 |     0.6585 |     0.6999 <--
-Combined mIoU                  |     0.4012 |     0.7582 |     0.7692 <--
-Combined Dice                  |     0.5453 |     0.8536 |     0.8624 <--
-Combined PA                    |     0.6953 |     0.9286 |     0.9298 <--
+Test1 mIoU (inline)     | 0.6446  | 0.7577  | 0.7513  | 0.7881    | 0.7625
+Test2 mIoU (crossline)  | 0.2710  | 0.6585  | 0.6999  | 0.6986    | 0.6681
+Combined mIoU           | 0.4012  | 0.7582  | 0.7692  | 0.7926*   | 0.7668
+Combined Dice           | 0.5453  | 0.8536  | 0.8624  | 0.8775*   | 0.8603
+Combined PA             | 0.6953  | 0.9286  | 0.9298  | 0.9413*   | 0.9319
+Combined MCA            |   --    | 0.8756  |   --    | 0.8975*   | 0.8615
+Combined FwIoU          |   --    |   --    |   --    |   --      | 0.8784
 ===========================================================================
 
-Per-class IoU (Combined) — v6:
-  S0 Upper NS            : IoU=0.9365  Dice=0.9672
-  S1 Lower NS            : IoU=0.7798  Dice=0.8763
-  S2 Rijnland            : IoU=0.9405  Dice=0.9694
-  S3 Scruff              : IoU=0.5697  Dice=0.7259
-  S4 Zechstein           : IoU=0.7583  Dice=0.8626
-  S5 Under Zech          : IoU=0.6304  Dice=0.7733
+* v7-broken sayilari yapay olarak yuksek — methodology bug'lari (contiguous
+  block val + 3D crossline leakage + 2.5D komsu sizintisi) sebebiyle val/test
+  paradoksu (val 0.66 < test 0.79). Methodology fix sonrasi gercek genelleme
+  performansi ortaya cikti.
+
+NOT: v7-fixed sayilari 320x320 resized space'te hesaplandi. Alaudah benchmark'i
+orijinal cozunurlukte (701x255 / 401x255) evaluator calistirir; dogrudan
+kiyaslanabilirlik icin original-resolution evaluator gerekli (bekleyen is).
 
 ===========================================================================
- v6 FINAL SONUCLAR
-...
-  v6 = v5.3 metodoloji + EfficientNet-B4 + ASPP(12,24,36) + CosineWarmRestarts
-
-  ===========================================================================
- v6 FINAL SONUCLAR
+ v7-FIXED PER-CLASS IoU (Combined)
 ===========================================================================
-  Test1 mIoU   : 75.13%  (inline)
-  Test2 mIoU   : 69.99%  (crossline — genelleme)
-  Combined mIoU: 76.92%
-  Combined Dice: 86.24%
-  Combined PA  : 92.98%
+  S0 Upper NS            : IoU=0.9368  Dice=0.9674
+  S1 Lower NS            : IoU=0.8014  Dice=0.8898
+  S2 Rijnland            : IoU=0.9357  Dice=0.9668
+  S3 Scruff              : IoU=0.6010  Dice=0.7508
+  S4 Zechstein           : IoU=0.7548  Dice=0.8603
+  S5 Under Zech          : IoU=0.5709  Dice=0.7269
 
-  v6 = v5.3 metodoloji + EfficientNet-B4 + ASPP(12,24,36) + CosineWarmRestarts
+===========================================================================
+ CLASS 4 (ZECHSTEIN) TEST2 FELAKETI — EN BUYUK BILIMSEL ACIK
+===========================================================================
+  Test1 IoU : 0.7993  (inline yonu — calisir)
+  Test2 IoU : 0.1177  (crossline — felaket, 6.8x dusus)
+
+  Test2'de Class 4 GT pikselleri tahmin dagilimi:
+    Under Zech (S5) : 58.80%  <- en buyuk yanlis
+    Scruff     (S3) : 22.66%
+    Zechstein  (S4) : 17.79%  (dogru)
+
+  Sebep : Tuz tabakasi yon-bagimli (anisotropic) morfoloji.
+  Cozum : Domain adaptation gerekiyor (future work).
+
+===========================================================================
+ ALAUDAH 2019 KARSILASTIRMA (caveat'li)
+===========================================================================
+  Alaudah section + aug + skip (best baseline, orijinal cozunurluk):
+    PA  = 0.905 | MCA = 0.817 | FwIoU = 0.832 | mIoU = rapor edilmemis
+
+  v7-fixed (320x320 resized space):
+    PA  = 0.932 | MCA = 0.861 | FwIoU = 0.878 | mIoU = 0.7668
+
+  CAVEAT : Bizim sayilar 320x320 resized space'te. Alaudah orijinal
+  cozunurlukte ölcer. Doğrudan "Alaudah'i geçtik" iddiasi icin ayni
+  evaluator protokolu gerekli. Su anki dürüst ifade: "Alaudah baseline'a
+  yakin değerler". Original-resolution evaluator yapildiginda revize.
+
+===========================================================================
+ v7-FIXED ANAHTAR KONFIGURASYON
+===========================================================================
+  v7-fixed = EfficientNet-B4 + 2.5D Multi-View + LS-CE+Dice+Focal +
+             Mixup + TTA + Yol A methodology fix
+
+  Mimari   : DeepLabV3+ (smp) + EfficientNet-B4 ImageNet pretrained
+  Girdi    : 2.5D = 3 komsu slice -> 3 kanal RGB-benzeri, 320x320
+  Loss     : 0.4 LS-CE + 0.3 Dice + 0.3 Focal (gamma=2)
+  Mixup    : alpha=0.2, p=0.5 per batch
+  Optim    : AdamW lr=1e-4 wd=1e-3
+  Sched    : CosineAnnealingWarmRestarts T_0=25 eta_min=1e-6
+  Epoch    : 100 (84'te early stop, patience=25)
+  Batch    : 6 (efektif 24, grad accum x4), AMP
+  Sampler  : WeightedRandomSampler (S4 + S5 rare boost x10)
+
+  Methodology Fix (Yol A):
+    Train  : inline [0, 158) U [242, 401) + xline [0, 601)
+    Val    : inline [160, 240) (orta blok)
+    Buffer : +/-2 inline (2.5D komsu sizintisi engeli)
+    Xline  : train_inline_mask ile val pikselleri image'dan cropped
+
+  TTA      : original + HFlip + polarity inversion (~+0.5 puan)
+  Eval     : 320x320 resized (original-resolution evaluator bekleyen is)
+
+  Egitim suresi: ~5 saat (RTX 3060 Ti 8GB, AMP)

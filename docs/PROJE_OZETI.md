@@ -515,14 +515,20 @@ Yukarıdaki bağlamla şu konularda yardım isteyebilirsin (öncelik sırasıyla
 
 ---
 
-**Son durum (2026-05-10):**
+**Son durum (2026-05-10, eleştirel external feedback sonrası güncellendi):**
 - v7 mimarisi sabit
 - Kozmetik v6→v7 path/isim düzeltmeleri tamamlandı
 - ✅ Methodology fix Yol A UYGULANDI (commit `0955d57`)
 - ✅ **v7-fixed eğitimi TAMAMLANDI** (84/100 epoch, early stop)
-- 📊 Yeni sayılar (Combined): mIoU **0.7668** | Dice **0.8603** | PA **0.9319** | MCA **0.8615** | **FwIoU 0.878**
-- 🎉 **Alaudah 2019 best baseline'ı PA/MCA/FwIoU üçünde de net geçildi**: PA +2.7, MCA +4.5, FwIoU +4.6 puan
-- ⚠️ **Class 4 Test2 felaketi devam ediyor**: IoU 0.118 (eski 0.178'den daha kötü) — domain adaptation problemi olduğu kanıtlandı; %58.8 oranında Under Zech ile karıştırılıyor
+- 📊 Yeni sayılar (Combined): mIoU **0.7668** | Dice **0.8603** | PA **0.9319** | MCA **0.8615** | **FwIoU 0.8784**
+- ⚠️ **"Alaudah'ı geçtik" iddiası YUMUŞATILDI**: PA/MCA/FwIoU sayılarımız Alaudah baseline'a (0.905/0.817/0.832) yakın bantta görünüyor ama bizim sayılar 320×320 resized space'te, Alaudah orijinal çözünürlükte. Doğrudan kıyas için **original-resolution evaluator gerekli — bekleyen iş**. Şu anki dürüst ifade: "Alaudah baseline seviyesinde".
+- ⚠️ **Class 4 Test2 felaketi devam ediyor**: IoU 0.118 (eski 0.178'den daha kötü) — domain adaptation problemi; %58.8 oranında Under Zech ile karıştırılıyor
 - ✅ Class 4 error analysis görselleri üretildi (`results/figures/error_analysis/`)
-- ✅ SOTA literatür tablosu, Limitations, Sunum scripti hazır
-- 🎯 Sıradaki: sunum slaytları, ablation (TTA on/off ölçüldü: +0.5 puan), multi-seed (opsiyonel)
+- ✅ Literatür tablosu, Limitations, Sunum scripti hazır (eleştirel feedback ile dil yumuşatıldı)
+- 🎯 Bekleyen kritik işler:
+  1. **Original-resolution evaluator** (Alaudah ile birebir kıyas için)
+  2. **3 ablation** (no-Mixup, 1-channel, inline-only)
+  3. **3 seed (42/43/44)** mean±std
+  4. **Block-mask concat** düzeltmesi (iki ayrı xline dataset)
+  5. Sunum slaytları
+- ❌ Reddedilen / future work: Tam 3D, 5-fold CV, Foundation model fine-tune, Domain adaptation

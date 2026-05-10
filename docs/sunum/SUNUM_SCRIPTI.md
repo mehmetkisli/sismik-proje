@@ -117,11 +117,11 @@
 >
 > [SLAYT: Class 4 error analysis] Class 4 Zechstein'in Test2'deki başarısızlığını detaylı incelediğimizde net bir tablo çıkıyor: Class 4 GT piksellerinin sadece **17.8%'i doğru** Zechstein olarak tahmin ediliyor; geri kalanın **58.8%'i Under Zechstein** (S5) olarak yanlış sınıflandırılıyor, **22.7%'si ise Scruff** (S3). Bu yanlışlıklar tesadüfi değil — Under Zech, Zechstein'ın hemen altında bulunan komşu tabaka; Scruff ise üstünde. Yani model Class 4'ü tamamen kaçırmıyor, sınırını yanlış çiziyor. Bunun nedeni: tuz tabakası **yön bağımlı (anisotropic)** — inline yönünde sürekli/blok yapıdadır, crossline yönünde diapir/kıvrım morfolojisi gösterir. Eğitim verimiz inline-baskın temsil sunduğu için model crossline morfolojisine genelleyemiyor. Üstelik Test2'de Class 4 zaten çok az: piksellerin sadece **0.78%'i** Class 4 (Test1'de %17). Bu, methodology değil, **alan adaptasyonu** problemi — future work başlığında ele alıyorum."
 
-**Geçiş:** "Bu sayıları literatürdeki SOTA çalışmalarıyla nasıl karşılaştırırız?"
+**Geçiş:** "Bu sayıları literatürdeki çalışmalarla nasıl karşılaştırırız?"
 
 ---
 
-## ⏱️ 30:00 – 35:00 — SOTA Karşılaştırma
+## ⏱️ 30:00 – 35:00 — Literatür Karşılaştırma
 
 **Slayt 19-21:** Literatür karşılaştırma tablosu + metrik farkları açıklaması + savunma slaytı
 
@@ -141,16 +141,16 @@
 >
 > **(3) Heavy ensembling — Wiley DeepLabV3+ ve SegNet birlikte ensembling yapıyor.**
 >
-> **Biz Alaudah 2019 benchmark'ının orijinal coğrafi Test1/Test2 split'ine ve 6-sınıf düzenine sadığız. Modelimizden Alaudah ile aynı metriklerle (PA, FwIoU, MCA) hesapladığımızda PA 0.932, MCA 0.861, FwIoU 0.878 elde ediyoruz — Alaudah'ın "best baseline"ının PA 0.905 / MCA 0.817 / FwIoU 0.832 sayılarını **üç metrikte de net olarak geçiyoruz** (PA +2.7, MCA +4.5, FwIoU +4.6 puan). mIoU sayımızın daha düşük görünmesinin tek nedeni Alaudah'ın bu metriği rapor etmemesi, dolayısıyla bu yöndeki kıyasın metodolojik geçersizliği.'**
+> **Biz Alaudah 2019 benchmark'ının orijinal coğrafi Test1/Test2 split'ine ve 6-sınıf düzenine sadığız. Modelimizden Alaudah ile aynı metriklerle (PA, FwIoU, MCA) hesapladığımızda PA 0.932, MCA 0.861, FwIoU 0.878 elde ediyoruz — Alaudah'ın "best baseline"ının PA 0.905 / MCA 0.817 / FwIoU 0.832 değerlerine yakın bantta. ÖNEMLİ KAVET: Bizim sayılarımız 320×320 resized space'te hesaplanmıştır; Alaudah orijinal çözünürlükte (701×255 / 401×255) evaluator çalıştırır. Doğrudan "geçtik" iddiası için aynı evaluator protokolünü çalıştırmak gerekir — bu original-resolution evaluator henüz yazılmadı, bekleyen iş. Şu anki dürüst ifade: **Alaudah baseline'ına yakın değerlerde, baseline seviyesinde dürüst rapor**. mIoU sayımız 0.77 — bu metriği Alaudah rapor etmediği için doğrudan kıyas yok.'**
 >
 > [SLAYT: FwIoU karşılaştırma]
-> | Yöntem | mIoU | FwIoU | PA | MCA |
-> |---|---|---|---|---|
-> | Alaudah section + aug + skip (best baseline) | — | 0.832 | 0.905 | 0.817 |
-> | **Bizim v7-fixed** | **0.767** | **0.878** ⬆ | **0.932** ⬆ | **0.861** ⬆ |
-> | AdaSemSeg target-only (farklı split) | — | 0.86 | 0.91 | 0.89 |
+> | Yöntem | mIoU | FwIoU | PA | MCA | Eval Çözünürlüğü |
+> |---|---|---|---|---|---|
+> | Alaudah section + aug + skip (best baseline) | — | 0.832 | 0.905 | 0.817 | Orijinal (701×255) |
+> | **Bizim v7-fixed** | **0.767** | **0.878** | **0.932** | **0.861** | **320×320 resized** |
+> | AdaSemSeg target-only (farklı split) | — | 0.86 | 0.91 | 0.89 | farklı |
 >
-> Bu yüzden v7-fixed **literatür baseline'ını üç metrikte de geçiyor**. mIoU'nun düşük görünmesi metrik seçim farkından kaynaklanan bir görsel illüzyon — Alaudah ile aynı metriklere getirilince model net olarak baseline üzerinde."
+> v7-fixed sayıları Alaudah baseline'a yakın bantta görünüyor — ancak farklı evaluator protokolü kullandığımız için bu doğrudan kıyas değildir. Original-resolution evaluator yapıldığında sayılar bir miktar değişebilir. **Şu anki dürüst iddia: 'Alaudah baseline seviyesinde, leakage hatalarını analiz edip düzelten dürüst bir baseline'**."
 
 **Geçiş:** "Sunumu bitirmeden, çalışmanın sınırlılıklarına dürüstçe değinmek istiyorum."
 
@@ -216,8 +216,8 @@
 ### S6: "Class 4 Test2 IoU 0.18 — neden ve ne yapılabilir?"
 **Cevap:** "Zechstein tuz tabakası **anisotropic** — inline yönünde sürekli/blok yapıdadır, crossline yönünde kıvrım/diapir morfolojisi gösterir. Eğitim verim inline-baskın temsil sunduğu için model crossline'a genelleyemiyor. Çözüm methodology değil **domain adaptation** — AdaSemSeg, EarthAdaptNet gibi yaklaşımlar future work'te."
 
-### S7: "%79 mIoU SOTA'ya göre nerede?"
-**Cevap:** [SAVUNMA CÜMLESİNİ TEKRAR ET — slayt 21]
+### S7: "%77 mIoU SOTA'ya göre nerede?"
+**Cevap:** "Mevcut çalışma SOTA iddiasında değil. Modern literatür (2025-2026) sismik-spesifik foundation model'lara döndü: SFM 192 sismik survey'den 2.3M slice ile pretrain ediyor, GFM 450 sentetik volüm kullanıyor. Bizim ImageNet pretrain EfficientNet-B4 yaklaşımımız bu perspektifte **baseline seviyesinde**. F3 baseline'ı (Alaudah 2019 PA 0.905 / FwIoU 0.832) ile yakın değerlerde — ama doğrudan kıyas için orijinal-çözünürlük evaluator gerekli, bu future work. Foundation model fine-tune (SFM/GFM) future work."
 
 ### S8: "5-fold cross-validation neden yok?"
 **Cevap:** "5-fold = 5x eğitim maliyeti, 3060 Ti'de 7-10 saat × 5 = 35-50 saat. Yüksek lisans semineri zaman bütçesinde uygulanabilir bulmadık. Tek seed yerine multi-seed (3 seed) yapılması future work'te ilk öncelik."
