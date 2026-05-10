@@ -2,9 +2,12 @@
 
 > Bu belge, projeye dışarıdan bakan bir yapay zeka modelinin (Claude, GPT, Gemini, vb.) **hiçbir ek dosya açmadan** projenin tüm bağlamını, bugüne kadar denenen şeyleri, bilinen sorunları ve sıradaki adımları anlayabilmesi için yazılmıştır. `docs/AI_HANDOFF.md` dosyasının genişletilmiş halidir; arşivdeki eski sürümleri de kapsar.
 
-**Son güncelleme:** 2026-05-09  
-**Aktif sürüm:** v7  
+**Son güncelleme:** 2026-05-11  
+**Aktif sürüm:** v9  
 **Hedef:** 15 Haziran 2026 final seminer sunumu (40 dakika, Bilgisayarda Görme dersi yüksek lisans)
+
+> **v9 özet (2026-05-11):** Combined mIoU 0.7769 / Test2 mIoU 0.6869 / Class 4 Test2 IoU **0.2304** (v7-fixed'in 0.1177'sinden göreli +%96).
+> Konfigürasyon: DeepLabV3+ + EfficientNet-B4 + 5-kanallı 2.5D (±2 komşu) + 384×384 + QuadrupleLoss (LS-CE+Dice+Focal+Lovász) + xline-aware augmentation + multi-scale TTA (HFlip+polarity+scale 0.75/1.0/1.25), Yol A methodology fix üzerine.
 
 ---
 
@@ -111,7 +114,7 @@ v5.3 metodoloji + v5'in EfficientNet-B4'ü birleşimi. Kayda değer eklemeler:
 | Combined Dice | 0.8624 |
 | Combined PA | 0.9298 |
 
-### 3.5 v7.0 (arşiv: `archive/deeplabv3plus_v7.0.ipynb`) → v7 (aktif: `deeplabv3plus_v7.ipynb`)
+### 3.5 v7.0 (arşiv) → v7 (arşiv: `archive/deeplabv3plus_v7.ipynb`)
 v6 → v7 değişiklikleri:
 | Değişiklik | v6 | v7 |
 |---|---|---|
@@ -122,7 +125,42 @@ v6 → v7 değişiklikleri:
 | Batch | 8 | **6** (VRAM kısıtı) |
 | Diğer | aynı | aynı |
 
-`v7.0` (arşiv) ilk eğitim koşusu. Aktif `deeplabv3plus_v7.ipynb` aynı mimari, sadece **kozmetik path/isim düzeltmeleri** içeriyor (aşağıda 6.1).
+`v7.0` (arşiv) ilk eğitim koşusu. `v7` aynı mimari, sadece **kozmetik path/isim düzeltmeleri**. **v7-broken** olarak da anılır: 3 methodology bug nedeniyle leakage'lı sayılar. Combined mIoU 0.7926 görünüyor ama temizlik sonrası 0.7668'e düştü.
+
+### 3.6 v7-fixed (arşiv: `archive/deeplabv3plus_v7.ipynb` — methodology fix uygulanmış)
+v7 + **Yol A methodology fix** (orta blok val + ±2 inline buffer + crossline cropping):
+- val_inline = [160, 240) ortadaki 80 slice
+- train_inline = [0,158) ∪ [242,401), buffer=±2
+- xline image'ları train_inline_mask ile cropped (val pikselleri eğitimden çıkar)
+
+**Sonuç:** Combined mIoU **0.7668** (v7-broken'ın 0.7926'sından düşüş ≠ kötüleşme, gerçek genelleme performansının ortaya çıkması).
+
+### 3.7 v7-c4fix (arşiv: `archive/deeplabv3plus_v7_c4fix.ipynb`)
+v7-fixed üzerine **Class 4 (Zechstein) odaklı paket** — Test2'de 0.118 olan IoU'yu yükseltme hedefi:
+- **5 kanallı 2.5D** (±2 komşu) — xline'da daha geniş bağlam
+- **Lovász-Softmax loss** — IoU surrogate (Berman et al. 2018), QuadrupleLoss kombinasyonu (0.30·LS-CE + 0.25·Dice + 0.25·Focal + 0.20·Lovász)
+- **xline-aware augmentation** — Class 4'ün kıvrımlı/diapir morfolojisi için agresif elastic+grid distortion
+
+**Sonuç:** Combined mIoU **0.7779** (+1.11p vs v7-fixed). Class 4 Test2 IoU **0.1820** (+6.43p, göreli +%55). Ancak Class 5 Test2'de -5.02p kayıp (boost trade-off'u).
+
+### 3.8 v9 (AKTİF: `deeplabv3plus_v9.ipynb`)
+v7-c4fix taban + **v8-experimental kazanımları**:
+- **384×384** çözünürlük (320'den)
+- **Multi-scale TTA** — HFlip + polarity + scale 0.75/1.0/1.25 (5 augmentation)
+- BATCH=4, ACCUM=6 (efektif batch=24 sabit)
+- Lovász loss FP32'de hesaplanır (AMP+384 NaN'ı çözmek için)
+
+**Sonuç (Combined):** mIoU **0.7769** | Dice **0.8675** | PA **0.9345** | MCA **0.8627**.
+**Class 4 Test2 IoU:** **0.2304** — v7-fixed'in 0.1177'sinden göreli **+%96 artış**, v7-c4fix'in 0.1820'sinden +%26.6.
+**Class 5 Test2 IoU:** 0.6510 (c4fix'te 0.58'a düşmüştü, v9'da v7-fixed'in 0.63'ünü de geçti — Pareto iyileşme).
+
+| Metrik | v7-fixed | v7-c4fix | **v9** |
+|---|---|---|---|
+| Combined mIoU | 0.7668 | **0.7779** | 0.7769 |
+| Test1 mIoU | 0.7625 | **0.7902** | 0.7752 |
+| Test2 mIoU | 0.6681 | 0.6668 | **0.6869** |
+| Class 4 Test2 | 0.1177 | 0.1820 | **0.2304** |
+| Class 5 Test2 | 0.6301 | 0.5799 | **0.6510** |
 
 ---
 
@@ -224,8 +262,13 @@ Test verisinin val'den **kolay** çıkması. Olası nedenler:
 - **Ablation study yok** — Mixup, TTA, 2.5D, rare-class sampling, label smoothing tek tek katkıları ölçülmemiş
 - **SOTA literatür karşılaştırması yok** — Alaudah 2019 ve sonrası ile sayısal karşılaştırma tablosu eksik
 
-### Sorun 6: Class 4 (Zechstein) Test2'de çöküş
-Test1 IoU = 0.836, Test2 IoU = 0.178 — **4.7 kat fark**. Crossline yönünde Zechstein morfolojik olarak farklı görünüyor (tuz kıvrımı yönelimi); eğitim inline-baskın temsil görüyor. Domain adaptation problemi.
+### Sorun 6: Class 4 (Zechstein) Test2'de çöküş — v9'da büyük ölçüde iyileşti
+v7-broken'da Test1 IoU = 0.836, Test2 IoU = 0.178 — **4.7 kat fark**. Crossline yönünde Zechstein morfolojik olarak farklı görünüyor (tuz kıvrımı yönelimi); eğitim inline-baskın temsil görüyor. Hedefli müdahale (5-kanal + Lovász + xline-aware aug + 384):
+- v7-fixed: 0.1177 (baseline)
+- v7-c4fix: 0.1820 (+%55 göreli)
+- **v9: 0.2304 (+%96 göreli vs v7-fixed)**
+
+Test2 hâlâ Test1'in (0.82) altında; tam çözüm için **foundation model fine-tune** veya **domain adaptation** future work.
 
 ---
 

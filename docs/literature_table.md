@@ -49,6 +49,8 @@ Birçok sonraki makale bu **coğrafi split'i kullanmaz**:
 | 13 | Zhao 2018 (SEG) | 2018 | Encoder-decoder section | — | — | metrik abstract'ta yok | — | Alaudah'tan önce |
 | **★** | **Bizim v7-broken** (eski) | **2026** | **DeepLabV3+ + EffNet-B4 + 2.5D** | **0.788** | **0.699** | **mIoU 0.793** (FwIoU TBD) | 0.941 | **Alaudah geographic split, methodology bug'lu** |
 | **★** | **Bizim v7-fixed** | **2026** | **+ Yol A methodology fix** | **0.7625** | **0.6681** | **mIoU 0.7668 / FwIoU 0.878 / MCA 0.861** | **0.932** | **Alaudah baseline'a yakın değerler ⚠️ 320×320 resized eval** |
+| **★** | **Bizim v7-c4fix** | **2026** | **+ 5-ch + Lovász + xline-aware aug** | **0.7902** | **0.6668** | **mIoU 0.7779** | **0.937** | Class 4 paket; Class 4 Test2 0.182 (+%55) |
+| **★** | **Bizim v9** (aktif) | **2026** | **+ 384×384 + multi-scale TTA** | **0.7752** | **0.6869** | **mIoU 0.7769 / Dice 0.868 / MCA 0.863** | **0.935** | Class 4 Test2 0.230 (+%96 vs v7-fixed) ⚠️ 384×384 eval |
 
 ---
 
@@ -57,7 +59,8 @@ Birçok sonraki makale bu **coğrafi split'i kullanmaz**:
 | Yöntem | Yıl | F3'te en yüksek | Split | Eval | Karşılaştırılabilir mi? |
 |--------|-----|-----------------|-------|------|--------------------------|
 | Alaudah section + aug + skip (baseline) | 2019 | PA **0.905**, FwIoU **0.832**, MCA **0.817** | Test1+Test2 (geographic) | Orijinal çözünürlük | ✅ Aynı split |
-| **Bizim v7-fixed (DeepLabV3+ + EffNet-B4 + 2.5D)** | **2026** | mIoU **0.767** / **PA 0.932** / **FwIoU 0.878** / **MCA 0.861** | Alaudah geographic (methodology-fixed) | **320×320 resized** | ⚠️ Aynı split, **farklı evaluator çözünürlüğü** — birebir kıyas için orijinal-resolution evaluator gerekli |
+| **Bizim v9 (DeepLabV3+ + EffNet-B4 + 5-ch 2.5D + Lovász + multi-scale TTA)** | **2026** | mIoU **0.777** / **PA 0.935** / **MCA 0.863** | Alaudah geographic (methodology-fixed) | **384×384 resized** | ⚠️ Aynı split, **farklı evaluator çözünürlüğü** — birebir kıyas için orijinal-resolution evaluator gerekli |
+| **Bizim v7-fixed (referans baseline)** | **2026** | mIoU **0.767** / **PA 0.932** / **FwIoU 0.878** / **MCA 0.861** | Alaudah geographic (methodology-fixed) | **320×320 resized** | ⚠️ Aynı koşullar |
 | AdaSemSeg Baseline-1 (target-only) | 2025 | F3 inline FwIoU **0.86**, PA **0.91** | farklı F3 split | farklı | ⚠️ farklı split |
 | UmixClick (interactive) | 2025 | mIoU **0.7666**, PA **0.9351** | belirsiz, **kullanıcı yardımı** | belirsiz | ❌ adil değil |
 | Wiley/Hindawi ensemble | 2022 | mIoU **0.9392**, PA **0.9852** | random 60/20/20, **7-sınıf** | belirsiz | ❌ farklı problem |

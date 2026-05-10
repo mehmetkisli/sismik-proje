@@ -2,32 +2,57 @@
 
 Bu proje, F3 Hollanda sismik veri kümesi (Alaudah 2019 benchmark) üzerinde DeepLabV3+ (EfficientNet-B4) tabanlı semantik segmentasyon ile fasiyes sınıflandırması yapar.
 
-## Aktif Sürüm: v7-fixed
+## Aktif Sürüm: v9
 
-v7-fixed = v7 + Yol A methodology fix (orta blok val + ±2 inline buffer + crossline cropping ile leakage giderme)
+**v9 = methodology-fix + Class 4 paket + 384×384 + multi-scale TTA**
+- 5 kanallı 2.5D (±2 komşu)
+- QuadrupleLoss: LS-CE + Dice + Focal + Lovász-Softmax
+- xline-aware augmentation (Class 4 morfolojisi için agresif elastic+grid)
+- 384×384 çözünürlük
+- Multi-scale TTA (HFlip + polarity + scale 0.75/1.0/1.25)
+- Yol A methodology fix (orta blok val + ±2 inline buffer + crossline cropping)
 
 | Metrik | Test1 (inline) | Test2 (crossline) | **Combined** |
 |---|---:|---:|---:|
-| mIoU | 76.25% | 66.81% | **76.68%** |
-| Mean Dice | 85.60% | 75.70% | **86.03%** |
-| Pixel Accuracy | 92.28% | 94.10% | **93.19%** |
-| Mean Class Acc | 87.43% | 74.93% | **86.15%** |
-| FwIoU | 86.34% | 89.63% | **87.84%** |
+| mIoU | 77.52% | 68.69% | **77.69%** |
+| Mean Dice | 86.52% | 78.43% | **86.75%** |
+| Pixel Accuracy | 92.81% | 94.08% | **93.45%** |
+| Mean Class Acc | 87.20% | 77.13% | **86.27%** |
 
-> **Önemli kavet:** Yukarıdaki sayılar 320×320 resized space'te hesaplanmıştır. Alaudah benchmark'ı orijinal çözünürlükte (701×255 / 401×255) evaluator çalıştırır; dolayısıyla **doğrudan kıyaslanabilirlik için tam protokol uyumu yok** — sayılar Alaudah'ın baseline değerlerine yakın bantta ama "geçtik" iddiası için orijinal-çözünürlük evaluator gerekir (bekleyen iş).
+**Sürüm evrimi (Combined mIoU):**
+| Sürüm | Combined mIoU | Önemli yenilik |
+|---|---:|---|
+| v3 (baseline U-Net) | 0.4012 | Plain U-Net, ImageNet yok |
+| v5 | 0.7582 | EfficientNet-B4 + DeepLabV3+ + 320×320 |
+| v6 | 0.7580 | + 2.5D + WeightedSampler |
+| v7-broken | 0.7926 | ⚠️ methodology bug'ları (leakage'lı) |
+| v7-fixed | 0.7668 | + Yol A methodology fix |
+| v7-c4fix | 0.7779 | + 5-channel + Lovász + xline-aware aug |
+| **v9** | **0.7769** | + 384×384 + multi-scale TTA |
 
-> **v7-broken (eski, bug'lı):** Test1 78.81%, Test2 69.86%, Combined 79.26%. Bu sayılar contiguous-block val + 3D crossline leakage + 2.5D komşu sızıntısından beslenen yapay yüksek değerlerdi. v7-fixed'in daha düşük gözükmesi gerçek genelleme performansının ortaya çıkması demek (val-test paradoksu çözüldü).
+> **v7-broken not:** 0.7926 görünüyor ama contiguous-block val + 3D crossline leakage + 2.5D komşu sızıntısından beslenen yapay yüksek değer. Methodology fix sonrası gerçek genelleme performansı ortaya çıktı.
+>
+> **Önemli kavet:** Yukarıdaki sayılar 320×320 / 384×384 resized space'te hesaplanmıştır. Alaudah benchmark'ı orijinal çözünürlükte (701×255 / 401×255) evaluator çalıştırır; "geçtik" iddiası için orijinal-çözünürlük evaluator gerekir (bekleyen iş).
 
-v7-fixed = EfficientNet-B4 + 2.5D Multi-View + LS-CE+Dice+Focal + Mixup + TTA + methodology fix
+## Class 4 (Zechstein) Test2 — odak metriği
 
-Sürüm evrimi: `results/sonuc.txt` ve `results/metrics/*.json`
+Test2'de Class 4 (tuz tabakası), morfolojinin yön bağımlılığından dolayı tüm sürümlerin en zayıf noktasıydı. Sürüm bazlı IoU evrimi:
+
+| Sürüm | Class 4 Test2 IoU |
+|---|---:|
+| v7-fixed | 0.1177 |
+| v7-c4fix | 0.1820 (+6.43p, göreli +%55) |
+| **v9** | **0.2304** (+11.27p vs v7-fixed, **göreli +%96**) |
+
+Detaylı hata analizi: `results/figures/error_analysis/`
 
 ## Bilinen Sınırlılıklar
 
-- **Class 4 (Zechstein) Test2 IoU 0.118** — model %58.8 oranında Under Zechstein ile karıştırıyor. Tuz tabakasının yön bağımlı (anisotropic) morfolojisi; eğitim inline-baskın temsil. Çözüm: domain adaptation (future work).
+- **Class 4 (Zechstein) Test2 IoU 0.230** — v7-fixed'in 0.118'inden ~2 katına çıktı, ama hâlâ Test1 (0.82) ile uçurum var. Tuz tabakasının yön bağımlı (anisotropic) morfolojisi; çözüm için domain adaptation veya sismik-spesifik foundation model fine-tune (future work).
 - **Tek seed (42)** — error bar yok, varyans ölçülmedi. Multi-seed planlandı.
-- **Ablation eksik** — sadece TTA on/off (+0.5 puan); Mixup, 2.5D, xline, rare sampler için ablation yok.
-- **Evaluator resize'a bağlı** — 320×320 metrikler. Original-resolution evaluator henüz yok.
+- **Ablation eksik** — TTA on/off var, ama Lovász, 5-channel, xline-aware aug için ayrı ablation yok.
+- **Evaluator resize'a bağlı** — 384×384 metrikler. Original-resolution evaluator henüz yok.
+- **AMP NaN riski** — 384×384'te Lovász+AMP fp16 NaN üretti, FP32 wrap ile çözüldü; raporlanması gereken bir nüans.
 
 Detaylı liste: [docs/LIMITATIONS.md](docs/LIMITATIONS.md)
 
@@ -35,14 +60,14 @@ Detaylı liste: [docs/LIMITATIONS.md](docs/LIMITATIONS.md)
 
 ```
 .
-├── deeplabv3plus_v7.ipynb     ← Aktif eğitim notebook'u (v7-fixed)
-├── view_data.ipynb             ← Veri inceleme
+├── deeplabv3plus_v9.ipynb         ← Aktif eğitim notebook'u (v9)
+├── view_data.ipynb                ← Veri inceleme
 │
-├── archive/                    ← Eski sürümler (v5, v5.3, v6, v7.0)
+├── archive/                       ← Eski sürümler (v5/v5.3/v6/v7.0/v7/v7-c4fix/v8-exp)
 │
-├── data/                       ← Veri seti (notebook bu yoldan okuyor)
+├── data/                          ← Veri seti (notebook bu yoldan okuyor)
 │   ├── train/
-│   │   ├── train_seismic.npy   (547 MB)
+│   │   ├── train_seismic.npy      (547 MB)
 │   │   └── train_labels.npy
 │   └── test_once/
 │       ├── test1_seismic.npy
@@ -50,33 +75,36 @@ Detaylı liste: [docs/LIMITATIONS.md](docs/LIMITATIONS.md)
 │       ├── test2_seismic.npy
 │       └── test2_labels.npy
 │
+├── checkpoints_v7/                ← v7 ailesi + v9 best/checkpoint .pth dosyaları
+│
 ├── results/
-│   ├── sonuc.txt               ← Sürüm karşılaştırma özeti
-│   ├── metrics/                ← v3/v5/v6/v7-broken/v7-fixed JSON metrikleri
-│   └── figures/                ← Eğitim/test/error_analysis görselleri
+│   ├── sonuc.txt                  ← Sürüm karşılaştırma özeti
+│   ├── metrics/                   ← v3/v5/v6/v7-*/v9 JSON metrikleri
+│   └── figures/                   ← Eğitim/test/error_analysis görselleri
 │
 ├── scripts/
-│   └── class4_error_analysis.py  ← Class 4 hata analiz scripti
+│   └── class4_error_analysis.py   ← Class 4 hata analiz scripti
 │
 ├── docs/
-│   ├── PROJE_OZETI.md          ← Detaylı devir belgesi
-│   ├── AI_HANDOFF.md           ← Kısa devir notu
-│   ├── LIMITATIONS.md          ← Bilimsel sınırlılıklar
-│   ├── literature_table.md     ← SOTA karşılaştırma tablosu
-│   ├── tez/                    ← LaTeX kaynağı + PDF çıktıları
-│   ├── sunum/                  ← Sunum PDF'leri + SUNUM_SCRIPTI.md
-│   └── plan/                   ← Proje planı + literatür taraması
+│   ├── PROJE_OZETI.md             ← Detaylı devir belgesi
+│   ├── AI_HANDOFF.md              ← Kısa devir notu
+│   ├── LIMITATIONS.md             ← Bilimsel sınırlılıklar
+│   ├── literature_table.md        ← SOTA karşılaştırma tablosu
+│   ├── tez/                       ← LaTeX kaynağı + PDF çıktıları
+│   ├── sunum/                     ← Sunum PDF'leri + SUNUM_SCRIPTI.md
+│   └── plan/                      ← Proje planı + literatür taraması
 │
-├── assets/whatsapp/            ← Ekran görüntüleri / fotoğraflar
+├── assets/whatsapp/               ← Ekran görüntüleri / fotoğraflar
 │
-└── venv/                       ← Python sanal ortamı
+└── .venv/                         ← Python sanal ortamı
 ```
 
 ## Kurulum (yeni makine)
 
 ```bash
-python -m venv venv
-source venv/bin/activate
+python -m venv .venv
+.venv/Scripts/activate              # Windows
+# source .venv/bin/activate         # Linux/Mac
 pip install -r requirements.txt
 ```
 
@@ -87,7 +115,7 @@ CUDA için PyTorch'un GPU sürümünü ayrıca kur: https://pytorch.org/
 Notebook'u **kök dizinden** açın (yollar `data/...` şeklinde göreli):
 
 ```bash
-jupyter notebook deeplabv3plus_v7.ipynb
+jupyter notebook deeplabv3plus_v9.ipynb
 ```
 
 Eğitim sonrası Class 4 error analysis:
@@ -95,3 +123,5 @@ Eğitim sonrası Class 4 error analysis:
 ```bash
 python scripts/class4_error_analysis.py
 ```
+
+> **Windows + Türkçe locale uyarısı:** Script `→` gibi Unicode karakterler içerdiği için `PYTHONIOENCODING=utf-8` set'lenmesi gerekebilir.
