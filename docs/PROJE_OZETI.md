@@ -515,10 +515,14 @@ Yukarıdaki bağlamla şu konularda yardım isteyebilirsin (öncelik sırasıyla
 
 ---
 
-**Son durum (2026-05-09):**
-- v7 mimarisi sabit (eski sayılar: combined mIoU 0.7926, val 0.6617 — paradoks)
+**Son durum (2026-05-10):**
+- v7 mimarisi sabit
 - Kozmetik v6→v7 path/isim düzeltmeleri tamamlandı
-- ✅ **Methodology fix Yol A UYGULANDI** (cells 8, 9, 11, 12, 19, 20, 22, 31, 32 — commit `0955d57`)
-- 🚂 **Eğitim başka bilgisayarda devam ediyor** (3060 Ti, ~1.5–2 saat)
-- 📊 Yeni sonuçlar `results/metrics/deeplabv3plus_v7_fixed_metrics.json`'a yazılacak
-- 🎯 Sıradaki paralel görev: SOTA literatür tablosu derlemesi
+- ✅ Methodology fix Yol A UYGULANDI (commit `0955d57`)
+- ✅ **v7-fixed eğitimi TAMAMLANDI** (84/100 epoch, early stop)
+- 📊 Yeni sayılar (Combined): mIoU **0.7668** | Dice **0.8603** | PA **0.9319** | MCA **0.8615** | **FwIoU 0.878**
+- 🎉 **Alaudah 2019 best baseline'ı PA/MCA/FwIoU üçünde de net geçildi**: PA +2.7, MCA +4.5, FwIoU +4.6 puan
+- ⚠️ **Class 4 Test2 felaketi devam ediyor**: IoU 0.118 (eski 0.178'den daha kötü) — domain adaptation problemi olduğu kanıtlandı; %58.8 oranında Under Zech ile karıştırılıyor
+- ✅ Class 4 error analysis görselleri üretildi (`results/figures/error_analysis/`)
+- ✅ SOTA literatür tablosu, Limitations, Sunum scripti hazır
+- 🎯 Sıradaki: sunum slaytları, ablation (TTA on/off ölçüldü: +0.5 puan), multi-seed (opsiyonel)

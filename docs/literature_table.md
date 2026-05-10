@@ -47,8 +47,8 @@ Birçok sonraki makale bu **coğrafi split'i kullanmaz**:
 | 11 | Microsoft seismic-deeplearning | 2020 | UNet/SEResNet/HRNet | — | — | repo'da resmî tablo yok | — | baseline kod var, sayı yok |
 | 12 | Dramsch & Lüthje (SEG) | 2018 | Transfer learning, 9 sınıf | — | — | %92 patch-classification | — | **patch sınıflandırma — semantik segmentasyon değil** |
 | 13 | Zhao 2018 (SEG) | 2018 | Encoder-decoder section | — | — | metrik abstract'ta yok | — | Alaudah'tan önce |
-| **★** | **Bizim v7-broken** (eski) | **2026** | **DeepLabV3+ + EffNet-B4 + 2.5D** | **0.788** | **0.699** | **mIoU 0.793** | 0.941 | **Alaudah geographic split, methodology bug'lu** |
-| **★** | **Bizim v7-fixed** | **2026** | **+ Yol A methodology fix** | **TBD** | **TBD** | **TBD** | **TBD** | **eğitim devam ediyor** |
+| **★** | **Bizim v7-broken** (eski) | **2026** | **DeepLabV3+ + EffNet-B4 + 2.5D** | **0.788** | **0.699** | **mIoU 0.793** (FwIoU TBD) | 0.941 | **Alaudah geographic split, methodology bug'lu** |
+| **★** | **Bizim v7-fixed** ⭐ | **2026** | **+ Yol A methodology fix** | **0.7625** | **0.6681** | **mIoU 0.7668 / FwIoU 0.878 / MCA 0.861** | **0.932** | **Alaudah baseline'ını PA/MCA/FwIoU'da geçer** |
 
 ---
 
@@ -56,8 +56,8 @@ Birçok sonraki makale bu **coğrafi split'i kullanmaz**:
 
 | Yöntem | Yıl | F3'te en yüksek | Split | Karşılaştırılabilir mi? |
 |--------|-----|-----------------|-------|--------------------------|
-| Alaudah section + aug + skip (baseline) | 2019 | PA **0.905**, FWIU **0.832**, MCA **0.817** | Test1+Test2 (geographic) | ✅ Bizimkiyle aynı split |
-| **Bizim v7-fixed (DeepLabV3+ + EffNet-B4 + 2.5D)** | **2026** | mIoU Test1/Test2/Comb. **TBD** | Alaudah geographic (methodology-fixed) | ✅ aynı split |
+| Alaudah section + aug + skip (baseline) | 2019 | PA **0.905**, FwIoU **0.832**, MCA **0.817** | Test1+Test2 (geographic) | ✅ Bizimkiyle aynı split |
+| **Bizim v7-fixed (DeepLabV3+ + EffNet-B4 + 2.5D)** ⭐ | **2026** | mIoU **0.767** / **PA 0.932** / **FwIoU 0.878** / **MCA 0.861** | Alaudah geographic (methodology-fixed) | ✅ **aynı split — PA +2.7, MCA +4.5, FwIoU +4.6 puan üstün** |
 | AdaSemSeg Baseline-1 (target-only) | 2025 | F3 inline FwIoU **0.86**, PA **0.91** | farklı F3 split | ⚠️ farklı split |
 | UmixClick (interactive) | 2025 | mIoU **0.7666**, PA **0.9351** | belirsiz, **kullanıcı yardımı** | ❌ adil değil |
 | Wiley/Hindawi ensemble | 2022 | mIoU **0.9392**, PA **0.9852** | random 60/20/20, **7-sınıf** | ❌ farklı problem |
@@ -66,11 +66,15 @@ Birçok sonraki makale bu **coğrafi split'i kullanmaz**:
 
 ## 4. Bizim Sayıların Literatürdeki Yeri (Sunum Yorumu)
 
-### 4.1 Net Bulgular
+### 4.1 Net Bulgular (v7-fixed sonuçları geldikten sonra)
 
-- **v7 mIoU 0.793 ≈ Alaudah PA 0.905 değil** — farklı metrikler. mIoU sınıf-eşit-ağırlıklı, Alaudah'ın PA'sı baskın sınıf yanlısı.
-- Doğrudan kıyaslanabilir tek satır: **Alaudah section + aug + skip (best baseline)** — PA 0.905, FWIU 0.832, MCA 0.817. Bizim v7-fixed sayılarımızı bu üç metrikle hesaplamalıyız.
-- AdaSemSeg Baseline-1 (target-only training, F3 inline FwIoU 0.86) bize en yakın kıyasdır ama **farklı F3 split'i** kullandığı için "v7 daha iyi/kötü" demek yanıltıcıdır.
+- **v7-fixed Alaudah baseline'ını üç metrikte de NET olarak geçer** (Combined sayılar):
+  - PA: 0.932 vs Alaudah 0.905 → **+2.69 puan**
+  - MCA: 0.861 vs Alaudah 0.817 → **+4.45 puan**
+  - FwIoU: 0.878 vs Alaudah 0.832 → **+4.64 puan**
+- mIoU sayımız (0.767) "düşük" görünür ama Alaudah bu metriği rapor etmemiştir — kıyas geçersiz.
+- AdaSemSeg Baseline-1 (target-only, F3 inline FwIoU 0.86) bize en yakın kıyasdır; bizim Combined FwIoU 0.878 ile aynı seviyede ama AdaSemSeg farklı F3 split'i kullandığı için doğrudan kıyas yine de tartışmalı.
+- Wiley 2022 / CONSS 2023'ün 0.94+ mIoU sayıları farklı split + farklı sınıf + data leakage ile şişirilmiş — bizim sayılarımızla doğrudan karşılaştırılamaz.
 
 ### 4.2 Sunum İçin Dürüst İfadeler
 
