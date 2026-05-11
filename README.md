@@ -28,7 +28,9 @@ Bu proje, F3 Hollanda sismik veri kümesi (Alaudah 2019 benchmark) üzerinde Dee
 | v7-broken | 0.7926 | ⚠️ methodology bug'ları (leakage'lı) |
 | v7-fixed | 0.7668 | + Yol A methodology fix |
 | v7-c4fix | 0.7779 | + 5-channel + Lovász + xline-aware aug |
-| **v9** | **0.7769** | + 384×384 + multi-scale TTA |
+| **v9 (ana model)** | **0.7769** | + 384×384 + multi-scale TTA |
+
+> **SFM deneyleri (arşiv):** Sismik Foundation Model (Sheng et al. 2024) ile 3 ek deney yapıldı (`archive/sfm/`). Sayısal olarak ana modelimiz v9'u tam geçmedi ama Class 4 Test2'de literatür için değerli bir bulgu ürettik (SFM v1: 0.270, v9'un 0.230'undan +%17 göreli iyileşme). Detaylar + neden ana model olarak seçilmedi: [`archive/sfm/README.md`](archive/sfm/README.md).
 
 > **v7-broken not:** 0.7926 görünüyor ama contiguous-block val + 3D crossline leakage + 2.5D komşu sızıntısından beslenen yapay yüksek değer. Methodology fix sonrası gerçek genelleme performansı ortaya çıktı.
 >
@@ -63,7 +65,9 @@ Detaylı liste: [docs/LIMITATIONS.md](docs/LIMITATIONS.md)
 ├── deeplabv3plus_v9.ipynb         ← Aktif eğitim notebook'u (v9)
 ├── view_data.ipynb                ← Veri inceleme
 │
-├── archive/                       ← Eski sürümler (v5/v5.3/v6/v7.0/v7/v7-c4fix/v8-exp)
+├── archive/                       ← Eski sürümler + SFM deneyleri
+│   ├── deeplabv3plus_v*.ipynb     ←   v5/v5.3/v6/v7.0/v7/v7-c4fix/v8-exp
+│   └── sfm/                       ←   Sismik Foundation Model deneyleri (v1, v2)
 │
 ├── data/                          ← Veri seti (notebook bu yoldan okuyor)
 │   ├── train/

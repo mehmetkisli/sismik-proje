@@ -162,6 +162,29 @@ v7-c4fix taban + **v8-experimental kazanımları**:
 | Class 4 Test2 | 0.1177 | 0.1820 | **0.2304** |
 | Class 5 Test2 | 0.6301 | 0.5799 | **0.6510** |
 
+### 3.9 SFM Deneyleri (arşivlendi)
+
+**Motivasyon:** F3 Alaudah split'inde sismik foundation modellerin (SFM, GFM, GEM) **literatürde hiçbir doğrulanmış sayısı yok** (kaynak: `docs/literature_table.md`). 2026-05-10/11'de SFM Base-512 (Sheng et al. 2024) ile 3 deney yapıldı.
+
+**Trade-off matrisi (sunum highlight'i):**
+
+| Metrik | Lider | Değer |
+|---|---|---|
+| Combined mIoU | **v9** | 0.7769 |
+| Test1 mIoU | **SFM v2** | 0.7823 |
+| Test2 mIoU | **v9** | 0.6869 |
+| Class 4 Test2 | **SFM v1** | 0.2699 |
+| Best val mIoU | **SFM v2** | 0.8233 |
+| Class 4 Combined | **SFM v2** | 0.8049 |
+
+**Hiçbir model tüm kriterlerde lider değil** — her birinin spesifik avantajı var. SFM ana model olarak v9'u **sayısal olarak geçemedi** (Combined v9 > SFM v2 > SFM v1), ama Class 4 Test2'de literatür için değerli bir bulgu üretti (SFM v1 0.270, v9'un 0.230'undan göreli +%17 iyileşme).
+
+**Beklenmedik bulgu:** Encoder agresif fine-tune (v2) Class 4 Test2'de v1'in altına düştü — encoder inline-baskın training Class 4 morfolojisini "Test1'e uygun" temsil ettirip Test2 genellemesini bozdu. Bu tez Discussion bölümünde değerli bir tasarım dersi.
+
+**Karar:** **Ana model v9 kaldı.** SFM sonuçları ablation/Discussion'da raporlanacak.
+
+**Tüm detaylar + neden ana model seçilmedi:** [`archive/sfm/README.md`](../archive/sfm/README.md) (kapsamlı belge — 3 deneyin tam tablosu, mimari adaptasyon, hyperparams, beklenmedik bulgular, tez sunum yapısı, reproducibility talimatı)
+
 ---
 
 ## 4. v7 Aktif Konfigürasyon (kapsamlı)

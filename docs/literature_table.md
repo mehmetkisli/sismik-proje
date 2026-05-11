@@ -51,6 +51,8 @@ Birçok sonraki makale bu **coğrafi split'i kullanmaz**:
 | **★** | **Bizim v7-fixed** | **2026** | **+ Yol A methodology fix** | **0.7625** | **0.6681** | **mIoU 0.7668 / FwIoU 0.878 / MCA 0.861** | **0.932** | **Alaudah baseline'a yakın değerler ⚠️ 320×320 resized eval** |
 | **★** | **Bizim v7-c4fix** | **2026** | **+ 5-ch + Lovász + xline-aware aug** | **0.7902** | **0.6668** | **mIoU 0.7779** | **0.937** | Class 4 paket; Class 4 Test2 0.182 (+%55) |
 | **★** | **Bizim v9** (aktif) | **2026** | **+ 384×384 + multi-scale TTA** | **0.7752** | **0.6869** | **mIoU 0.7769 / Dice 0.868 / MCA 0.863** | **0.935** | Class 4 Test2 0.230 (+%96 vs v7-fixed) ⚠️ 384×384 eval |
+| **★** | **Bizim SFM v1** | **2026** | **SFM ViT-B/16 + 5→1 ch + MLAHead, encoder lr 5e-5** | **0.7209** | **0.6665** | **mIoU 0.7281 / Dice 0.830** | **0.922** | **F3 Alaudah'ta SFM ilk fine-tune.** Class 4 Test2 **0.270** — tüm sürümler arasında en iyi |
+| **★** | **Bizim SFM v2** | **2026** | **+ enc lr 2e-4 + layer_decay 0.9 + rare 15** | **0.7823** | **0.6591** | **mIoU 0.7677 / Dice 0.858** | **0.936** | Best val mIoU **0.8233** (en iyi); Test1 v9'u geçti; ama Class 4 Test2 düştü (0.20) — agresif enc fine-tune'un trade-off'u |
 
 ---
 
