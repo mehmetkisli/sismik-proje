@@ -28,8 +28,13 @@ Bu proje, F3 Hollanda sismik veri kümesi (Alaudah 2019 benchmark) üzerinde Dee
 | v7-broken | 0.7926 | ⚠️ methodology bug'ları (leakage'lı) |
 | v7-fixed | 0.7668 | + Yol A methodology fix |
 | v7-c4fix | 0.7779 | + 5-channel + Lovász + xline-aware aug |
-| **v9 (ana model)** | **0.7769** | + 384×384 + multi-scale TTA |
+| v9 (single-seed) | 0.7769 | + 384×384 + multi-scale TTA |
+| **v9 multi-seed ensemble** | **0.7910 ± 0.006** | + 3-seed (42+43+44) softmax averaging |
 
+> **v9 Multi-seed Ensemble (aktif final model):** 3 bağımsız seed ile eğitim + softmax averaging → Combined mIoU **0.7910 ± 0.006**, v9 tek-seed'ten **+1.41p**. Detaylar: [`ensemble/README.md`](ensemble/README.md).
+>
+> **Kritik akademik bulgu:** v9 tek-seed Class 4 Test2 sonucu (0.230) **istatistiksel outlier'mış** — 3-seed gerçek değer 0.183 ± 0.04. Tek-seed bias riskinin net kanıtı, tezde akademik dürüstlük örneği.
+>
 > **SFM deneyleri (arşiv):** Sismik Foundation Model (Sheng et al. 2024) ile 3 ek deney yapıldı (`archive/sfm/`). Sayısal olarak ana modelimiz v9'u tam geçmedi ama Class 4 Test2'de literatür için değerli bir bulgu ürettik (SFM v1: 0.270, v9'un 0.230'undan +%17 göreli iyileşme). Detaylar + neden ana model olarak seçilmedi: [`archive/sfm/README.md`](archive/sfm/README.md).
 
 > **v7-broken not:** 0.7926 görünüyor ama contiguous-block val + 3D crossline leakage + 2.5D komşu sızıntısından beslenen yapay yüksek değer. Methodology fix sonrası gerçek genelleme performansı ortaya çıktı.
@@ -64,6 +69,11 @@ Detaylı liste: [docs/LIMITATIONS.md](docs/LIMITATIONS.md)
 .
 ├── deeplabv3plus_v9.ipynb         ← Aktif eğitim notebook'u (v9)
 ├── view_data.ipynb                ← Veri inceleme
+│
+├── ensemble/                      ← Multi-seed ensemble (3 seed: 42+43+44)
+│   ├── README.md                  ←   detaylı ensemble belgesi
+│   ├── train_v9_seed.py           ←   SEED parameter ile v9 eğitimi
+│   └── evaluate_ensemble.py       ←   softmax averaging inference
 │
 ├── archive/                       ← Eski sürümler + SFM deneyleri
 │   ├── deeplabv3plus_v*.ipynb     ←   v5/v5.3/v6/v7.0/v7/v7-c4fix/v8-exp

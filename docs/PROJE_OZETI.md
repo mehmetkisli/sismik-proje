@@ -8,6 +8,8 @@
 
 > **v9 özet (2026-05-11):** Combined mIoU 0.7769 / Test2 mIoU 0.6869 / Class 4 Test2 IoU **0.2304** (v7-fixed'in 0.1177'sinden göreli +%96).
 > Konfigürasyon: DeepLabV3+ + EfficientNet-B4 + 5-kanallı 2.5D (±2 komşu) + 384×384 + QuadrupleLoss (LS-CE+Dice+Focal+Lovász) + xline-aware augmentation + multi-scale TTA (HFlip+polarity+scale 0.75/1.0/1.25), Yol A methodology fix üzerine.
+>
+> **v9 Multi-seed Ensemble (2026-05-12 — aktif final model):** SEED 42+43+44 softmax averaging. Combined mIoU **0.7910 ± 0.006** (tek-seed v9'un 0.7769'undan +1.41p). Tek-seed Class 4 Test2 sonucu (0.230) istatistiksel outlier'dı — gerçek değer 0.183 ± 0.04. Detaylar: `ensemble/README.md`.
 
 ---
 
