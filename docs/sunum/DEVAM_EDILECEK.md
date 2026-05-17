@@ -1,7 +1,7 @@
 # Kaldığın Yer — Devam Listesi
 
-> **Son senkronizasyon:** 2026-05-12
-> **Hedef:** 15 Haziran 2026 final seminer (33 gün kaldı)
+> **Son senkronizasyon:** 2026-05-17
+> **Hedef:** 15 Haziran 2026 final seminer (29 gün kaldı)
 > **Bu dosya:** Diğer makinede kaldığın yerden devam ederken ilk açacağın dosya. Diğer her şey bunun pointer'ı.
 
 ---
@@ -19,12 +19,42 @@
 - ✅ 4 manuel diyagram üretildi → [`../../results/figures/`](../../results/figures/)
   - `2_5d_input_schema.png`, `methodology_fix_schema.png`, `deeplab_block_diagram.png`, `ensemble_schema.png`
 - ✅ Ablation paketi hazırlandı → [`../../ablation/`](../../ablation/)
+- ✅ **(2026-05-17) IEEE konferans tezi yazıldı + tam revize edildi** → [`../tez/SeismicFacies_IEEE_Conf_Kisli.tex`](../tez/SeismicFacies_IEEE_Conf_Kisli.tex)
+  - Abstract'a FwIoU 0.892 ana sayı eklendi (Alaudah +6.0 puan)
+  - Yeni V.H bölümü: SFM ile karşılaştırma (v1/v2 + Class 4 = 0.270 bulgusu)
+  - Tartışma'ya Class 4 Test2 confusion tablosu eklendi (%43.9 Under Zechstein'a karışıyor)
+  - Sınıf-bazlı IoU tablosu ensemble değerlerine çevrildi (kanonik belgeyle uyumlu)
+  - Reproducibility paragrafı SFM dosyaları + FwIoU hesabını dahil edildi
+  - QuadrupleLoss ağırlıkları için gerekçe paragrafı eklendi
+  - tab:perclass başlık hatası ("v9 tek-seed" diyordu, içerik v7-fixed idi) düzeltildi
+  - 10 etiket/ref, 10 table, 11 tabular, 2 figure, 15 cite — hepsi dengeli
+  - Bibliografi: UmixClick 2025 referansı eklendi
 
 ---
 
 ## 🔴 Kalan İşler (öncelik sırasına göre)
 
-### 1. Ablation paketi koş (GPU — ~8 saat) **← ŞIMDI BU**
+### 0. Original-resolution evaluator scripti **(GPU — 1-2 saat)**
+
+**Durum:** Script henüz YAZILMADI. Tez Bölüm V.G'de "bekleyen iş" olarak işaretli — sunum öncesi yetişirse Alaudah birebir kıyas iddiası %100 sağlam olur.
+
+**Yapılacak (Mac'te yazılır → PC'de koşar):**
+
+1. Yeni script: `scripts/eval_originalres.py`
+   - 3 v9 seed checkpoint'ini yükle (`checkpoints_v7/v9_seed_{42,43,44}_best.pth`)
+   - Test1 (701×255) ve Test2 (701×255) volümlerini **orijinal çözünürlükte** oku
+   - Slice-by-slice: input → 384×384 resize → model softmax → **701×255'e geri upsample** → ensemble averaging
+   - Argmax → orijinal-çözünürlük etiketleriyle karşılaştır
+   - mIoU / PA / MCA / FwIoU / per-class IoU hesapla
+   - JSON üret: `results/metrics/v9_ensemble_originalres_metrics.json`
+
+2. Tez'i güncelle: Bölüm V.G "evaluator çözünürlüğü kaveatı" → "orijinal-res kıyas tamamlandı, fark Δ puan"
+
+**Önemli:** Script yazma ~30 dk Mac'te yapılabilir; sonra git push → PC'de pull + çalıştır (~1-2 saat GPU).
+
+---
+
+### 1. Ablation paketi koş (GPU — ~8 saat) **← BUNDAN DEVAM**
 
 Eğitim makinesinde çalıştır. Detaylı kılavuz: [`../../ablation/README.md`](../../ablation/README.md)
 
