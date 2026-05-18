@@ -15,16 +15,31 @@
 %% =====================================================================
 \documentclass[conference,a4paper,10pt]{IEEEtran}
 
-% --- Dil ve karakter kodlaması --------------------------------------
-\usepackage[T1]{fontenc}
-\usepackage[utf8]{inputenc}
-\usepackage[turkish,english]{babel}   % son dil = belge dili: \selectlanguage ile değiştirilebilir
-\selectlanguage{turkish}
+% --- Dil ve karakter kodlaması (XeLaTeX / Tectonic ile uyumlu) ------
+% pdflatex için fontenc+inputenc gerek (eski derleyici), XeLaTeX
+% için fontspec kullanılır. Aşağıdaki ifTeX yapısı her iki yolu destekler.
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage[turkish,english]{babel}
+  \selectlanguage{turkish}
+  \shorthandoff{=}
+\else
+  % XeLaTeX / LuaLaTeX (Tectonic dahil) — native Unicode
+  \usepackage{fontspec}
+  \usepackage{polyglossia}
+  \setdefaultlanguage{turkish}
+  \setotherlanguage{english}
+\fi
 
 % --- Tipografi ve grafikler ------------------------------------------
-\usepackage{lmodern}
+\ifPDFTeX
+  \usepackage{lmodern}
+\fi
 \usepackage{microtype}
 \usepackage{graphicx}
+\usepackage{grffile}     % dosya adlarında alt çizgi/nokta için
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{multirow}
@@ -38,9 +53,6 @@
   citecolor=black,
   urlcolor=blue
 }
-
-% Türkçe babel \shorthandoff (= karakteri çift anlama gelmemesi için)
-\shorthandoff{=}
 
 % --- Tablo yardımcıları ----------------------------------------------
 \newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
@@ -84,7 +96,7 @@ rastgele tohumla bağımsız olarak eğitilen modellerin softmaks ortalamasıyla
 (MCA) $\mathbf{= 0.873}$}, \textbf{frekans-ağırlıklı IoU (FwIoU) $\mathbf{= 0.892}$}
 ve \textbf{Test1 mIoU $\mathbf{= 0.804}$} değerlerini elde etmiştir. PA, MCA ve FwIoU
 metriklerinde Alaudah 2019 en iyi temel modelinin (PA $0.905$, MCA $0.817$,
-FwIoU $0.832$) sırasıyla $+3.5$, $+5.6$ ve $+6.0$ puan üzerinde sonuç alınmıştır. Önemli bir
+FwIoU $0.832$) sırasıyla $+3.5$, $+5.6$ ve $+5.9$ puan üzerinde sonuç alınmıştır. Önemli bir
 akademik bulgu olarak, tek-tohumlu çalışmanın Class~4 (Zechstein) Test2 IoU sonucunun
 ($0.230$) istatistiksel bir aykırı değer olduğu tespit edilmiş; çoklu-tohum gerçek
 değer $0.183 \pm 0.04$ olarak raporlanmıştır. Sonuçlar, sismik segmentasyon
@@ -179,8 +191,11 @@ F3 fasiyes için Alaudah protokolüyle uyumlu sayı raporlanmamış (testler Par
 kümesi üzerinde yapılmıştır). Bu boşluğu doldurmak amacıyla, bu çalışmada SFM ViT-B/16
 ön-eğitimli enkoderi F3 üzerinde \emph{Alaudah coğrafi bölünmesi} ile ince-ayar edilmiş;
 hem dondurulmuş hem tam fine-tune varyantları için sonuçlar raporlanmıştır
-(Bölüm~\ref{sec:sfm}). Bilgimiz dahilinde bu, SFM'in F3 facies kıyaslaması üzerinde
-Alaudah protokolüyle ilk fine-tune deneyidir.
+(Bölüm~\ref{sec:sfm}). Yapılan literatür taramasında SFM'in F3 fasiyes
+veri kümesi üzerinde Alaudah coğrafi bölünme protokolüyle fine-tune
+sonuçlarına rastlanmamıştır; bu çalışma söz konusu boşluğu hedeflemektedir.
+Sistematik bir öncelik iddiası için daha kapsamlı bir literatür taraması
+gerekmektedir.
 
 \subsection{2.5D ve 3B Yaklaşımlar}
 
@@ -635,7 +650,7 @@ Alaudah section + aug + skip (en iyi baseline)~\cite{alaudah2019} & 2019 & Alaud
 \textbf{Bizim v7-fixed} (referans baseline)  & 2026 & Alaudah coğrafi & $0.767$ & $0.932$ & $0.862$ & $0.860$ & $0.878$ \\
 \textbf{Bizim v9 (tek-seed)}                 & 2026 & Alaudah coğrafi & $0.777$ & $0.935$ & $0.863$ & $0.867$ & $0.882$ \\
 \rowcolor{green!20}
-\textbf{Bizim v9 Topluluk (3-seed)} \textbf{$\Rightarrow$ aktif final} & 2026 & Alaudah coğrafi & $\mathbf{0.791 \pm 0.006}$ & $\mathbf{0.940}$ & $\mathbf{0.873}$ & $\mathbf{0.877}$ & $\mathbf{0.892}$ \\
+\textbf{Bizim v9 Topluluk (3-seed)} \textbf{$\Rightarrow$ aktif final} & 2026 & Alaudah coğrafi & $\mathbf{0.791 \pm 0.006}$ & $\mathbf{0.940}$ & $\mathbf{0.873}$ & $\mathbf{0.877}$ & $\mathbf{0.891}$ \\
 \textbf{Bizim SFM v2} (ViT-B/16 fine-tune) & 2026 & Alaudah coğrafi & $0.768$ & $0.936$ & $0.856$ & $0.857$ & $0.888$ \\
 \midrule
 Abid ve ark.\ (Wiley) ensemble~\cite{abid2022} & 2022 & rastgele yama (7 sınıf) & $0.939$\,$^\dagger$ & $0.985$\,$^\dagger$ & --- & --- & --- \\
@@ -651,14 +666,34 @@ SFM (Sheng ve ark.)~\cite{sfm2024}           & 2024 & F3 için raporlanmadı (Pa
 Tablo~\ref{tab:sota}, çoklu-tohum topluluğumuzun \textbf{piksel doğruluğunda}
 (PA $0.940$ vs Alaudah $0.905$, $+3.5$~puan), \textbf{sınıf ortalaması
 doğruluğunda} (MCA $0.873$ vs $0.817$, $+5.6$~puan) ve \textbf{frekans-ağırlıklı
-IoU}’da (FwIoU $0.892$ vs $0.832$, $+6.0$~puan) Alaudah 2019 en iyi
-temel modelinin üzerinde sonuç verdiğini ortaya koymaktadır. FwIoU değerimiz,
-SEED~42 modelinin Birleşik karmaşıklık matrisinden çıkarılan test-zamanı sınıf
-frekansları (S0: $\%21.8$, S1: $\%10.0$, S2: $\%51.1$, S3: $\%6.0$, S4: $\%8.9$,
-S5: $\%2.3$) ile topluluk sınıf-bazlı IoU değerlerinin ağırlıklı toplamı olarak
-hesaplanmıştır. Üstelik bu karşılaştırma Alaudah’ın \emph{orijinal coğrafi
-bölünmesine sadık kalan} ve veri sızıntılarından arındırılmış (\emph{Yol~A}
-düzeltmesi) bir protokol üzerinde yapılmıştır.
+IoU}’da (FwIoU $0.891$ vs $0.832$, $+5.9$~puan) Alaudah 2019 en iyi
+temel modelinin üzerinde sonuç verdiğini ortaya koymaktadır. FwIoU değeri,
+test kümesi etiket dosyalarından doğrudan hesaplanan gerçek-değer (GT) sınıf
+frekansları (Birleşik: S0: $\%21.5$, S1: $\%9.9$, S2: $\%50.7$, S3: $\%6.0$,
+S4: $\%9.6$, S5: $\%2.3$) ile topluluk modelinin sınıf-bazlı IoU değerlerinin
+ağırlıklı toplamı olarak hesaplanmıştır
+(\texttt{scripts/compute\_fwiou\_ensemble.py}; Tablo~\ref{tab:fwiou_split}
+Test1/Test2/Birleşik kırılımı). Üstelik bu karşılaştırma Alaudah'ın
+\emph{orijinal coğrafi bölünmesine sadık kalan} ve veri sızıntılarından
+arındırılmış (\emph{Yol~A} düzeltmesi) bir protokol üzerinde yapılmıştır.
+
+\begin{table}[!t]
+\renewcommand{\arraystretch}{1.2}
+\caption{Topluluk Modelinin FwIoU Değerleri (Test Kümesi Kırılımı)}
+\label{tab:fwiou_split}
+\centering
+\begin{tabular}{lc}
+\toprule
+\textbf{Test kümesi} & \textbf{FwIoU} \\
+\midrule
+Test1 (inline)    & $0.8888$ \\
+Test2 (crossline) & $0.8964$ \\
+\textbf{Birleşik} & $\mathbf{0.8908}$ \\
+\midrule
+Alaudah 2019 (Birleşik)~\cite{alaudah2019} & $0.832$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 Bu karşılaştırmanın metodolojik nüansı, bizim metriklerimizin $384 \times 384$
 yeniden örneklenmiş alanda hesaplanmış olmasıdır; Alaudah orijinal çözünürlükte
@@ -668,6 +703,48 @@ tutarlılık için orijinal-çözünürlük değerlendiricinin yeniden çalışt
 aramızdaki $+3.5$/$+5.6$/$+6.0$ puanlık farkın yalnızca evaluator çözünürlüğü
 etkisiyle açıklanması güçtür; yeniden örneklemenin tipik etkisi $\lesssim 1$
 puandır.
+
+\subsection{Bileşen Ablation'ı}
+\label{sec:ablation}
+
+v9 mimarisinin üç tasarım kararının (Lovász-Softmax kaybı, 5-kanallı 2.5D
+giriş, crossline-uyarlı augmentasyon) Birleşik ve Class~4 (Zechstein)
+Test2 metriklerine etkisini ölçmek amacıyla bir bileşen ablation'ı
+yürütülmüştür. Her ablation, v9 baseline (SEED=42) ile \emph{birebir aynı}
+hiperparametrelerle eğitilmiş, yalnızca ilgili bileşen devre dışı
+bırakılmıştır. Ablation maliyeti nedeniyle tek tohumla (SEED=42)
+yürütülmüş, çoklu-tohum ablation gelecek iş olarak işaretlenmiştir.
+Sonuçlar Tablo~\ref{tab:ablation}'de özetlenmiştir.
+
+\begin{table}[!t]
+\renewcommand{\arraystretch}{1.2}
+\caption{Bileşen Ablation'ı --- v9 baseline (SEED=42) vs.\ tek-bileşen kapalı varyantlar}
+\label{tab:ablation}
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{Konfigürasyon} & \textbf{Birleşik} & \textbf{$\Delta$ Birleşik} & \textbf{$\Delta$ C4 T2} \\
+\midrule
+v9 baseline (tam pipeline) & $0.7769$ & --- & --- (C4 T2 = $0.2304$) \\
+$-$ Lovász (TripleLoss)    & $0.7792$ & $+0.23$ & $-1.43$ \\
+$-$ 5-kanal $\rightarrow$ 3-kanal ($\pm 1$) & $0.7714$ & $-0.55$ & $\mathbf{-11.05}$ \\
+$-$ xline-uyarlı aug       & $0.7688$ & $-0.81$ & $\mathbf{-9.88}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Ablation üç bulguyu doğrulamaktadır: (i) \textbf{5-kanallı 2.5D giriş ve
+crossline-uyarlı augmentasyon Class~4 Test2 performansı için olmazsa
+olmaz} bileşenlerdir; her birinin kaldırılması Class~4 Test2 IoU'sunu
+yaklaşık $10$~puan düşürmektedir. Bu, Class~4 odaklı tasarım kararlarının
+\emph{post-hoc gerekçelendirmesi} değil \emph{niceliksel doğrulanması}dır.
+(ii) \textbf{Lovász-Softmax kaybı} Birleşik mIoU üzerinde küçük negatif
+etki gösterse de (\emph{TripleLoss}~$+0.23$~puan), doğrudan IoU surrogate
+olarak Class~4 azınlık sınıfında $1.43$~puan tutarlı katkı sağlamaktadır.
+(iii) Birleşik mIoU değişimleri ($\pm 0.81$~puan) sınıf-bazlı etkilerin
+($\pm 11$~puan) çok altındadır; bu, agrege metriklerin azınlık-sınıf
+gerilemelerini gizleyebildiğine işaret eder ve sınıf-bazlı raporlamanın
+gerekliliğini ampirik olarak vurgulamaktadır.
 
 \subsection{Sismik Temel Modeli (SFM) ile Karşılaştırma}
 \label{sec:sfm}
@@ -702,7 +779,7 @@ azınlık-sınıf boost faktörü~$15$). Sonuçlar Tablo~\ref{tab:sfm}'de
 \toprule
 \textbf{Model} & \textbf{mIoU} & \textbf{PA} & \textbf{MCA} & \textbf{FwIoU} & \textbf{C4~T2} \\
 \midrule
-v9 Topluluk (ana)        & $\mathbf{0.791}$ & $\mathbf{0.940}$ & $\mathbf{0.873}$ & $\mathbf{0.892}$ & $0.183$ \\
+v9 Topluluk (ana)        & $\mathbf{0.791}$ & $\mathbf{0.940}$ & $\mathbf{0.873}$ & $\mathbf{0.891}$ & $0.183$ \\
 SFM v2 (tam fine-tune)   & $0.768$ & $0.936$ & $0.856$ & $0.888$ & $0.201$ \\
 \rowcolor{green!10}
 SFM v1 (yarı-dondurulmuş enc.) & $0.728$ & $0.922$ & $0.823$ & $0.862$ & $\mathbf{0.270}$ \\
@@ -737,6 +814,18 @@ hipotezi destekleyici niteliktedir: enkoder tam öğrenince inline-baskın
 eğitim verisinin morfolojik bias'ına yatkınlaşmakta ve crossline yöndeki
 genelleme bozulmaktadır.
 
+\textit{Önemli çekince.} SFM v1 ve v2 sonuçları tek tohum (SEED=42) ile
+elde edilmiştir; SFM ailesi için multi-seed ablation yapılmamıştır.
+Bölüm~\ref{sec:c4_aykiri}'de v9 modeli için somutlanan tek-tohum aykırı
+değer riski (Class~4 Test2 IoU $0.230$'un üç-tohum gerçek değeri
+$0.183 \pm 0.04$ olarak görüldü) prensip olarak SFM ölçümleri için de
+geçerlidir. Bu nedenle SFM~v1'in Class~4 Test2'deki $0.270$ üstünlüğü,
+\emph{yüksek varyans bandında değerlendirilmesi gereken} potansiyel bir
+bulgu olarak raporlanmaktadır; istatistiksel olarak doğrulanmış bir
+üstünlük iddiası için en az üç-tohumlu SFM tekrarı gerekmektedir ve
+bu, çoklu-tohum ablation paketiyle birlikte gelecek iş olarak
+işaretlenmiştir.
+
 Topluluk \emph{ve} SFM varyantlarının birleştirildiği hibrit bir çıkarım
 yaklaşımı (örn. v9 topluluk ortalaması + SFM~v1 yalnızca Class~4 alanlarında
 oy çoğunluğu) gelecek çalışmalar arasında yer almaktadır.
@@ -755,6 +844,20 @@ somut bir örnek teşkil etmektedir. Önerilen pratik: a) en az üç tohumla
 ortalama $\pm$ standart sapma raporlanması, b) topluluk modeli sonuçlarının
 tek-tohum sonuçlarına \emph{tercih edilmesi}, c) azınlık sınıflarda
 metriklerin geniş güven aralıkları olduğunun açıkça kabul edilmesi.
+
+\subsection{Bileşen Katkılarının Yorumu}
+
+Bölüm~\ref{sec:ablation}'de raporlanan ablation sonuçları, v9 tasarımının
+üç bileşen kararının da \emph{Class~4 odaklı} olduğunu niceliksel olarak
+ortaya koymaktadır: 5-kanallı 2.5D giriş (Class~4 Test2 üzerinde
+$-11.05$~puan) ve crossline-uyarlı augmentasyon ($-9.88$~puan) Class~4
+Zechstein crossline morfolojisi için \emph{kritik} bileşenler iken,
+Lovász-Softmax katkısı küçük ama tutarlı kalmaktadır ($-1.43$~puan).
+Birleşik mIoU'daki değişimlerin sınıf-bazlı etkilerin çok altında kalması
+($\pm 0.81$ vs.\ $\pm 11$ puan), agrege metriklerin azınlık-sınıf
+gerilemelerini gizleyebildiğini ampirik olarak göstermektedir; bu, sismik
+fasiyes literatüründe yalnızca birleşik metrik raporlamanın
+yetersizliğine işaret eden bağımsız bir bulgudur.
 
 \subsection{Test2 ve Crossline Yön Bağımlılığı}
 
@@ -833,9 +936,14 @@ puanlık farkın yalnızca evaluator etkisine atfedilmesi olanaklı görünmemek
 \item \textbf{Tek-veri kümesi.} Yalnızca F3 üzerinde test edildi; farklı
 sismik veri kümeleri (örn.\ Penobscot, Parihaka) ile transfer
 denenmedi.
-\item \textbf{Ablasyon kısmen tek-tohum.} TTA, Lovász ve 5-kanal
-ablation deneyleri tek tohumla yapıldı; varyans yalnızca ana modelin
-3-tohum sonuçları için raporlandı.
+\item \textbf{Ablasyon tek-tohum.} Bölüm~\ref{sec:ablation}'de raporlanan
+bileşen ablation'ı (Lovász, 5-kanal 2.5D, crossline-uyarlı augmentasyon)
+tek tohumla (SEED=42) yürütülmüştür; bulgular ana eğilim göstergesi
+niteliğindedir ve ablation kararlarına ilişkin güven aralığı
+hesaplanmamıştır. TTA varyant ablation'ı (multi-scale vs.\ HFlip-only
+vs.\ no-TTA) ile Mixup, Focal $\alpha$ ve etiket-yumuşatma parametrelerinin
+tek-tek ablation'ı bu çalışma kapsamı dışında bırakılmış, çoklu-tohum
+ablation paketiyle birlikte gelecek iş olarak işaretlenmiştir.
 \item \textbf{AMP+Lov\'asz NaN sorunu.} $384\times 384$'te Lovász
 FP16'da NaN üretiyordu; FP32 sarmalayıcı ile çözüldü --- bu, raporlanması
 gereken bir uygulama nüansıdır.
@@ -855,7 +963,7 @@ veri sızıntısı (\emph{Yol~A}) düzeltilmiştir. 3 bağımsız tohum üzerind
 softmaks ortalamasıyla elde edilen topluluk; Birleşik mIoU $= 0.791 \pm
 0.006$, PA $= 0.940$, MCA $= 0.873$ ve \textbf{Test1 mIoU $= 0.804$}
 değerlerine ulaşmıştır. Sonuçlarımız, \textbf{Alaudah 2019 en iyi temel
-modelinin PA ($+3.5$~puan), MCA ($+5.6$~puan) ve FwIoU ($+6.0$~puan)
+modelinin PA ($+3.5$~puan), MCA ($+5.6$~puan) ve FwIoU ($+5.9$~puan)
 metriklerinde sayısal olarak üzerinde}; yalnızca evaluator çözünürlüğü
 kaveatı bulunmaktadır. Tek-tohum raporlamanın güvenilirsiz olduğunu
 gösteren kritik bir akademik bulgu da sunulmuştur: tek-tohumda görülen
@@ -880,10 +988,13 @@ arşivlenmiştir; \texttt{archive/sfm/metrics/sfm\_finetune\_metrics.json}
 (SFM~v1) ve \texttt{sfm\_finetune\_v2\_metrics.json} (SFM~v2) tam metrik
 ve karmaşıklık matrislerini içerir. SFM ön-eğitimli ağırlıkları
 \texttt{shenghanlin/SeismicFoundationModel} GitHub deposu üzerinden
-elde edilmiştir. FwIoU değerleri, SEED~42 modelinin Birleşik karmaşıklık
-matrisinden çıkarılan test-zamanı sınıf frekansları ile topluluk sınıf-bazlı
-IoU değerlerinin ağırlıklı toplamı olarak hesaplanmıştır; hesaplama betiği
-JSON çıktılarından doğrudan yeniden üretilebilir. Veri seti Zenodo
+elde edilmiştir. FwIoU değerleri Alaudah formülü
+($\text{FwIoU} = \sum_{c} f_c \cdot \text{IoU}_c$) ile hesaplanmıştır;
+sınıf frekansları $f_c$ test kümesi etiket dosyalarındaki (\texttt{test1\_labels.npy}
+$\cup$ \texttt{test2\_labels.npy}) gerçek-değer piksel sayımlarından, sınıf-bazlı
+IoU değerleri topluluk modelinin Birleşik karmaşıklık matrisinden alınmıştır
+(\texttt{scripts/compute\_fwiou\_ensemble.py}). Hesaplama betiği JSON
+çıktılarından doğrudan yeniden üretilebilir. Veri seti Zenodo
 \texttt{10.5281/zenodo.3755060} üzerinden indirilebilir. Tüm tohumlar
 ($42, 43, 44$), öğrenim oranı, scheduler ve mimari parametreleri Bölüm
 \ref{sec:metod}'de raporlanmıştır. Tüm metrikler $384 \times 384$

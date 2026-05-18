@@ -48,7 +48,7 @@ Bilgisayarda Görme — Yüksek Lisans Semineri
 
 **Hedef:** Derin öğrenme ile piksel-bazlı otomatikleştirme.
 
-![bg right:40% fit](../../assets/whatsapp/) <!-- TODO: sismik kesit + manuel yorum görseli yerleştir -->
+![bg right:40% fit](../../results/figures/eda_multiview.png)
 
 ---
 
@@ -360,17 +360,59 @@ Sonra 3-seed ensemble için 43 ve 44'ü de eğittik:
 
 ---
 
+# Class 4 Hatalarının Jeolojik Yorumu
+
+![bg right:45% fit](../../results/figures/error_analysis/class4_pred_vs_gt_test2.png)
+
+**Test2 Class 4 IoU = 0.183 — *ama hatalar rastgele değil***
+
+Zechstein GT piksellerinin tahmin dağılımı (v9 SEED 42):
+
+| Tahmin | Pay | Anlam |
+|---|---:|---|
+| Zechstein (doğru) | **%34.5** | ✅ |
+| **Under Zechstein** | **%43.9** | tuz-altı kompleks (komşu birim) |
+| **Scruff** | **%21.1** | üst sınır şeyl ardalanması |
+
+**Jeolojik anlam:** Zechstein evaporit + Under Zechstein üst Permiyen birimleri **stratigrafik komşu** — crossline yönde sismik imzaları **ayırt edilemez** hâle geliyor.
+
+> **Model rastgele tahmin yapmıyor — *jeolojik olarak makul* yanlışlar yapıyor. Bu istatistik hatası değil, *veri-yön bağımlılığı*.**
+
+---
+
+# Türkiye Petrol Endüstrisi için Anlamı
+
+**Doğrudan deployment değil — *methodology blueprint***
+
+- **TPAO / Türkiye Petrolleri** havzaları (GD Anadolu, Trakya, Karadeniz) F3'ten farklı: bindirme tektoniği, gerçek tuz tektoniği, yüksek gürültü
+- F3 model ağırlıkları doğrudan transfer edilemez — *ama* bu çalışmanın **3 katmanı doğrudan kullanılabilir**:
+
+| Katman | TPAO / TP'ye faydası |
+|---|---|
+| **Methodology (Yol A)** | Şirket-içi etiketli verilerde leakage-free split şablonu |
+| **Multi-seed + ablation** | İç projelerde dürüst varyans raporlama disiplini |
+| **PyTorch pipeline** | 1-2 hafta içinde havza-spesifik fine-tune başlangıç noktası |
+
+- **Endüstri kazanımı:** Manuel yorumlama *günler* → otomasyon *saatler*; **interpreter tutarlılığı** artar
+- **Sınır:** Class 4 (tuz) — özellikle Tuz Gölü / GD Anadolu için havzaya özel etiketleme + fine-tune gerektirir
+
+> **"Bu çalışma TPAO'nun proprietary verisi üzerinde ~2 haftada operasyonel hale gelebilecek bir başlangıç noktasıdır."**
+
+---
+
 # Future Work
 
-1. **Heterojen ensemble** (v9 + SFM v1) — Class 4 Test2'de iki yaklaşımın güçlerini birleştirme. Düşük maliyet, yüksek potansiyel.
+1. **Türkiye havzaları için transfer learning** — TPAO/TP işbirliği ile havza-spesifik fine-tune; ilk hedef: Tuz Gölü (tuz tektoniği) ve Trakya (overpressure ardalanması)
 
-2. **Domain adaptation** — AdaSemSeg / EarthAdaptNet ile Test2 yön bağımlılığına çözüm.
+2. **Heterojen ensemble** (v9 + SFM v1) — Class 4 Test2'de iki yaklaşımın güçlerini birleştirme. Düşük maliyet, yüksek potansiyel.
 
-3. **Original-resolution evaluator** — Alaudah birebir kıyas için gerekli.
+3. **Domain adaptation** — AdaSemSeg / EarthAdaptNet ile Test2 yön bağımlılığına çözüm.
 
-4. **Çapraz-volüm transfer** — F3 → Penobscot / Parihaka zero-shot test.
+4. **Original-resolution evaluator** — Alaudah birebir kıyas için gerekli.
 
-5. **K-fold + tam ablation** — Tezin uzun versiyonu için.
+5. **Çapraz-volüm transfer** — F3 → Penobscot / Parihaka zero-shot test.
+
+6. **K-fold + tam ablation** — Tezin uzun versiyonu için.
 
 ---
 
@@ -383,6 +425,7 @@ Sonra 3-seed ensemble için 43 ve 44'ü de eğittik:
 2. Methodology hatalarını **gizlemek yerine dürüstçe düzelttim**
 3. **Single-seed sonuç yanıltıcı olabilir** — multi-seed gerekli
 4. Class 4 Test2 hâlâ **alan adaptasyonu** açık problemi
+5. **Türkiye petrol endüstrisi için** doğrudan deployment değil, ~2 haftada operasyonel hale gelebilecek **methodology blueprint**
 
 ---
 

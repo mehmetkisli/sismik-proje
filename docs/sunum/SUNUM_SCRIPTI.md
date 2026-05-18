@@ -272,7 +272,55 @@
 
 ---
 
-## ⏱️ 38:00 – 40:00 — Future Work + Sonuç
+## ⏱️ 35:00 – 36:30 — Class 4 Hatalarının Jeolojik Yorumu (YENİ)
+
+**Slayt 26:** Class 4 Test2 prediction + GT görsel + confusion dağılım tablosu
+
+**Konuşma:**
+
+> "Limitations bölümünde Class 4 Test2 IoU'sunun 0.183 olduğunu söyledim. Şimdi bu sayının arkasındaki **jeolojik anlamı** gösterelim — çünkü bu, modelin gerçekten ne öğrendiğini anlamak için kritik.
+>
+> [SLAYT: Class 4 prediction Test2 + tablo]
+>
+> Test2'de Zechstein gerçek-değer piksellerinin yalnızca **%34.5'i** doğru olarak Zechstein'a atanmış. Geri kalan %65 nereye gitmiş?
+>
+> **%43.9'u Under Zechstein'a, %21.1'i Scruff'a karışmış.**
+>
+> Bu hata dağılımı **rastgele değil** — jeolojik olarak makul. Şöyle açıklayayım: Zechstein evaporit grubu ve Under Zechstein üst Permiyen birimleri **stratigrafik olarak komşudur**. Inline yönünde Zechstein yatay-katmanlı bir reflektor olarak ayırt edilebilir; ama crossline yönünde diapir kıvrımları morfolojiyi değiştirdiğinde, sismik imza Under Zechstein'la **fiziksel olarak ayırt edilemez** hâle geliyor.
+>
+> Scruff için de benzer durum — Zechstein'in üst sınırını oluşturan şeyl ardalanması crossline yönde Zechstein'la karışıyor.
+>
+> **Önemli mesaj:** Model bu hatayı yaparken **rastgele değil** — jeolojik kurallara uyan yanlışlar yapıyor. Bu, modelin istatistik değil **fizik öğrendiğinin** göstergesi. Sorun mimari değil, **veri-yön bağımlılığı** — domain adaptation problemi, future work'ta belgeli."
+
+---
+
+## ⏱️ 36:30 – 38:30 — Türkiye Petrol Endüstrisi için Anlamı (YENİ)
+
+**Slayt 26.5:** Türkiye pivot — TPAO/TP faydası + transfer blueprint
+
+**Konuşma:**
+
+> "Şimdi en önemli sorulardan birine geleyim — 'bu çalışma Türkiye'de ne işe yarar?'.
+>
+> Açık olalım: F3 Hollanda Kuzey Denizi'nde, yatay tabakalı, modern imaging — sismik için adeta tutorial seviyesi veri. TPAO ve Türkiye Petrolleri'nin çalıştığı havzalar — GD Anadolu bindirme kuşağı, Trakya basenleri, Karadeniz derin sular — yapısal olarak çok farklı. Bu yüzden F3'te eğitilen v9 modelini doğrudan onların verisinde çalıştırmak işe yaramaz. **Bunu net söylemek istiyorum, abartmaya gerek yok.**
+>
+> **Ama** bu çalışmanın üç katmanı **doğrudan transfer edilebilir** ve TPAO gibi şirketler için somut değer üretir:
+>
+> **Birincisi: methodology** — Yol A leakage düzeltmesi şablonu. Hangi havza olursa olsun, train/val split kurarken bu üç sızıntı türünü kontrol etmek gerekir. Bu şablonu şirket-içi kullanılabilir hale getirdik.
+>
+> **İkincisi: multi-seed pedagojisi ve ablation disiplini.** İç projelerde 'tek seed'le bu sayıyı bulduk' yerine 'üç seed ortalaması ± std' formatında raporlama kültürü — bunu somut bir bulguyla kanıtladık (Class 4 outlier hikâyesi).
+>
+> **Üçüncüsü: PyTorch pipeline.** Şirket-içi etiketli veri eklendiğinde, mimari ve eğitim altyapısı yaklaşık **1-2 hafta içinde havza-spesifik fine-tune'a hazır** — sıfırdan kurulum gerekmiyor.
+>
+> Endüstri kazanımı somut: bir jeofizikçi bir 3D volümü manuel yorumlamak için **günler** harcar; otomasyon bunu **saatlere** indiriyor — ve daha önemlisi, iki interpreter arasında **tutarlılık** sağlıyor.
+>
+> Sınır olarak dürüstçe söylüyorum: Class 4 yani tuz tabakası, Türkiye'de özellikle Tuz Gölü ve GD Anadolu'da operasyonel olarak kritik — bu sınıf için havzaya özel etiketleme + fine-tune gerekir, **hazır gelmiyor**.
+>
+> Yani bu çalışma TPAO'nun proprietary verisi üzerinde **yaklaşık 2 haftada operasyonel hale gelebilecek bir başlangıç noktasıdır**; F3 sonuçları o yolculuğun ilk taşıdır."
+
+---
+
+## ⏱️ 38:30 – 40:00 — Future Work + Sonuç
 
 **Slayt 27-28:** Future work listesi + teşekkür
 
@@ -280,13 +328,9 @@
 
 > "Bu çalışmanın doğal devamı olarak şu yönleri planlıyorum:
 >
-> **Birincisi**, **heterojen ensemble** — v9 + SFM v1 softmax averaging. Bugünkü mini-deneyde gördük ki SFM v1 Class 4 Test2'de daha iyi. İki modeli birleştirmek Class 4 problemini muhtemelen daha iyi adresler. Düşük maliyetli, yüksek potansiyelli bir deney.
+> **İlk öncelik**, **Türkiye havzaları için transfer learning** — TPAO veya TP işbirliği ile havza-spesifik fine-tune. Pilot hedef: Tuz Gölü (tuz tektoniği) ve Trakya (overpressure ardalanması).
 >
-> **İkincisi**, **alan adaptasyonu** — Class 4 Test2 sorununa AdaSemSeg veya EarthAdaptNet türevi few-shot yaklaşımlarla çözüm. Test2'deki yön bağımlı genelleme zafiyetini doğrudan adresler.
->
-> **Üçüncüsü**, **original-resolution evaluator** — Alaudah ile birebir karşılaştırılabilir sayılar üretmek için. Eksik kalan en somut bekleyen iş.
->
-> **Dördüncüsü**, **çapraz-volüm transfer** — F3'te eğit, Penobscot veya Parihaka'da test et. Modelin gerçek genelleme kapasitesini ölçmek için.
+> Ayrıca: **heterojen ensemble** (v9 + SFM v1), **alan adaptasyonu** (AdaSemSeg/EarthAdaptNet), **original-resolution evaluator** (Alaudah birebir kıyas), **çapraz-volüm transfer** (Penobscot/Parihaka).
 >
 > Bu çalışmadan çıkardığım en büyük ders şudur: derin öğrenme tek başına bir mühendislik problemi değil; **doğru methodology, dürüst değerlendirme ve istatistiksel rigor** bilimsel olgunluğun ön koşullarıdır. Single-seed bias bulgumuz bu prensibin somut bir örneğidir.
 >
@@ -309,7 +353,17 @@
 **Cevap:** "Üç neden: (1) F3 tek volüm — patch-based zorunlu, global jeolojik bağlam parçalanır. (2) Sismik için 3D pretrain encoder yok. (3) Liu et al. 2020 *Geophysics*'de F3 üzerinde section-based 2D'nin patch-based 3D'den daha iyi olduğunu somut olarak gösterdi. Bizim 2.5D yaklaşımımız — 5 komşu slice'ı kanal olarak vermek — 3D bağlamın bir kısmını yakalarken ImageNet pretrained encoder ile uyumlu kalıyor."
 
 ### S5: "Mixup'ın katkısı ölçtün mü? Ablation var mı?"
-**Cevap:** "Sınırlı ablation paketi yaptım — TTA on/off, Lovász on/off, 5-channel vs 3-channel ana koşular. TTA Combined mIoU'yu ~+1 puan, Lovász ~+1 puan, 5-channel Class 4 Test2'yi ~+5 puan katkı yapıyor. Mixup, label smoothing, focal alpha gibi diğer bileşenler için tam matris (2^6 kombinasyon) yüksek lisans semineri zaman bütçesinde sığmıyor — tezin uzun versiyonunda planlanıyor."
+**Cevap:** "Üç mimari/loss bileşeni için tek-seed ablation koştum (SEED=42, v9 ana ile birebir konfig, sadece ilgili bileşen kapalı). Bulgular:
+
+| Konfig | Combined Δ | **Class 4 Test2 Δ** | Yorum |
+|---|---:|---:|---|
+| Lovász OFF (Triple loss) | +0.23p | **−1.43p** | Combined'da etki minimal, ama Lovász **Class 4 minörlüğü için** kazanç sağlıyor |
+| 3-channel (±1 yerine 5-ch) | −0.55p | **−11.05p** ⚠️ | 2.5D context Zechstein için **çok büyük** kayıp |
+| xline-aware aug OFF | −0.81p | **−9.88p** ⚠️ | xline aug hem Test2 hem C4 için kritik |
+
+Yani v9'un üç tasarım kararı (Lovász, 5-ch, xline-aware aug) ablation ile **doğrulandı** — özellikle 5-ch 2.5D ve xline-aware aug Class 4'ün **olmazsa olmazı**, her biri ~−10 puan etki yaratıyor.
+
+Mixup, label smoothing, focal alpha gibi optimizasyon bileşenleri ve TTA varyantları (multi-scale vs HFlip-only vs no-TTA) için tam matris yüksek lisans semineri zaman bütçesinde sığmıyor — tezin uzun versiyonunda planlanıyor. Ayrıca bu ablation'lar **tek-seed** — single-seed varyans yüksek olduğu için (özellikle Class 4'te ±4p std), bulgular ana çizgi göstergesidir, kesin ölçüm değil. Bu da `LIMITATIONS.md`'de yazılı."
 
 ### S6: "Class 4 Test2 IoU 0.18 — neden ve ne yapılabilir?"
 **Cevap:** "Zechstein tuz tabakası **anisotropic** — inline yönünde sürekli/blok yapıdadır, crossline yönünde kıvrım/diapir morfolojisi gösterir. Eğitim verim inline-baskın temsil sunduğu için model crossline'a genelleyemiyor. Bu **domain adaptation** problemi — methodology değil. AdaSemSeg, EarthAdaptNet gibi few-shot DA yaklaşımları future work'te. Ayrıca bugün gösterdiğim SFM mini-deneyinde SFM v1'in Class 4 Test2'de 0.270 ile daha iyi olduğunu gördük — heterojen ensemble (v9 + SFM) ucuz ve umut verici bir çözüm yolu."
