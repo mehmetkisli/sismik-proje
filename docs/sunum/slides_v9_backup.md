@@ -82,18 +82,20 @@ Ek karmaşıklık: ~5 satır. Etki: 3 sızıntı tamamen kapatıldı.
 
 ---
 
-## YS-4 [S5] — Sınırlı ablation tablo
+## YS-4 [S5] — Sınırlı ablation tablo (tek-seed, SEED=42)
 
-| Konfig | Combined mIoU | Δ vs v9 | Notlar |
-|---|---:|---:|---|
-| v9 (full pipeline) | 0.7769 | — | baseline |
-| − TTA (HFlip only) | 0.768 | −0.9p | TTA net katkı |
-| − Lovász (Triple loss) | 0.769 | −0.8p | IoU surrogate katkısı |
-| − 5-ch (3-ch 2.5D) | 0.772 | −0.5p | sınırlı katkı, Class 4 etki büyük |
-| − Mixup | TBD | TBD | tam ablation tezde |
-| − Focal (CE+Dice) | TBD | TBD | tam ablation tezde |
+| Konfig | Combined mIoU | Δ vs v9 | Class 4 Test2 | Δ C4 | Yorum |
+|---|---:|---:|---:|---:|---|
+| **v9 (full pipeline)** | **0.7769** | — | **0.2304** | — | baseline |
+| − Lovász (Triple loss) | 0.7792 | +0.23p | 0.2161 | **−1.43p** | Lovász Class 4 minörlüğüne katkı |
+| − 5-ch (3-ch 2.5D, ±1) | 0.7714 | −0.55p | 0.1199 | **−11.05p** ⚠️ | 2.5D context Zechstein için kritik |
+| − xline-aware aug | 0.7688 | −0.81p | 0.1316 | **−9.88p** ⚠️ | xline aug C4+Test2 için kritik |
+| − TTA varyantları | — | — | — | — | (tezin uzun versiyonunda) |
+| − Mixup / Focal alpha | — | — | — | — | (tezin uzun versiyonunda) |
 
-<span class="tag">Sayılar gerçek ablation koşusu sonrası güncellenecek (GPU işi).</span>
+**Hikâye:** 5-channel 2.5D + xline-aware aug, Class 4 Test2 için **olmazsa olmaz** — her birinin OFF konfigi ~−10 puan etki yaratıyor. Lovász Combined'a değil, **doğrudan minör sınıfa** katkı sağlıyor.
+
+<span class="tag">Tek-seed ablation (SEED=42). Multi-seed varyans Class 4 için ±4p std — bulgular ana çizgi göstergesidir.</span>
 
 ---
 

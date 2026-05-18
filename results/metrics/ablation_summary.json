@@ -1,0 +1,54 @@
+{
+  "training": [
+    {
+      "config": "v9 baseline (SEED=42)",
+      "loss": "Quadruple",
+      "channels": 5,
+      "xline_aware": true,
+      "combined": 0.776899468879678,
+      "test1": 0.7752174772631691,
+      "test2": 0.68688222565864,
+      "c4_test2": 0.23035987052399,
+      "best_val": 0.8022128155912225,
+      "delta_combined": 0.0
+    },
+    {
+      "config": "Lov\u00e1sz OFF (TripleLoss)",
+      "loss": "Triple",
+      "channels": 5,
+      "xline_aware": true,
+      "combined": 0.7791677584198604,
+      "test1": 0.7766656175819366,
+      "test2": 0.6862713801095554,
+      "c4_test2": 0.21612593555876183,
+      "best_val": 0.7976164680517921,
+      "delta_combined": 0.0022682895401824332
+    },
+    {
+      "config": "3-channel 2.5D (\u00b11)",
+      "loss": "Quadruple",
+      "channels": 3,
+      "xline_aware": true,
+      "combined": 0.7713965736710616,
+      "test1": 0.7705291204840231,
+      "test2": 0.662452933095777,
+      "c4_test2": 0.11994850175757356,
+      "best_val": 0.8269919526505901,
+      "delta_combined": -0.005502895208616354
+    },
+    {
+      "config": "xline-aware aug OFF",
+      "loss": "Quadruple",
+      "channels": 5,
+      "xline_aware": false,
+      "combined": 0.7688455598510263,
+      "test1": 0.7686026292370193,
+      "test2": 0.6591686729331644,
+      "c4_test2": 0.13163060608201319,
+      "best_val": 0.802128713943485,
+      "delta_combined": -0.008053909028651662
+    }
+  ],
+  "tta": [],
+  "baseline_combined_miou": 0.776899468879678
+}

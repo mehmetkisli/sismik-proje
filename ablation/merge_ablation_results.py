@@ -164,7 +164,7 @@ def main():
     md_lines.append("- Class 4 Test2 hassasiyeti her ablation'da ayrı raporlanmalı — single-seed varyans yüksek (std ~0.04).")
 
     out_md = METRICS_DIR / "ablation_summary.md"
-    with open(out_md, "w") as f:
+    with open(out_md, "w", encoding="utf-8") as f:
         f.write("\n".join(md_lines) + "\n")
     print(f"→ {out_md}")
 

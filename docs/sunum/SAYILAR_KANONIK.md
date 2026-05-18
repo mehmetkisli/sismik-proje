@@ -2,7 +2,7 @@
 
 > **Sunum + tez + tüm dokümanlarda tek doğru kaynak.** Ana model = **v9 Multi-seed Ensemble** (SEED 42+43+44 softmax averaging). Sunumda söylenen her sayı bu dosyaya uymak zorunda.
 >
-> **Son güncelleme:** 2026-05-12
+> **Son güncelleme:** 2026-05-17 (ablation paketi eklendi — Madde 11)
 
 ---
 
@@ -119,12 +119,39 @@ Class 4 Test2 IoU:
 ## 9. Eksik Sayılar (TBD — sunum öncesi tamamlanmalı)
 
 - **v9 ensemble FwIoU** — JSON'da yok, hesaplanmalı. Test-set sınıf frekansları × per-class IoU formülüyle çıkar. Tahmini değer: ~0.89-0.90 bandı (v7-fixed 0.878'den yukarı).
-- **Ablation tablosu** — Lovász/5-ch/xline-aware aug/TTA ON/OFF sayıları (GPU işleri tamamlanınca buraya eklenecek).
+- **TTA varyant ablation** — multi-scale vs HFlip-only vs no-TTA (tezin uzun versiyonunda, sunumdan önce yetişmez — Mac → bu PC checkpoint transferi yapılmadığı için).
 - **Original-resolution evaluator sayıları** — Alaudah birebir kıyas için (future work — sunumdan önce yetişmez, dürüstçe söylenecek).
 
 ---
 
-## 10. KESINLIKLE KARIŞTIRMA Listesi
+## 10. Ablation Sonuçları (tek-seed, SEED=42, 2026-05-17)
+
+> v9 mimarisinin bileşenleri tek tek devre dışı bırakılarak yapılan ablation. Tek-seed varyans yüksek (Class 4 std ±4p) — bulgular **ana çizgi göstergesidir**, kesin ölçüm değil.
+
+**Baseline (v9 SEED=42 tek-seed):** Combined 77.69% | Test1 77.52% | Test2 68.69% | C4 Test2 23.04% | Best val 80.22%
+
+| Konfig | Best val | Test1 | Test2 | **Combined** | Δ vs v9 | **C4 Test2** | Δ C4 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| v9 baseline (Quadruple, 5-ch, xline-aware ON) | 80.22% | 77.52% | 68.69% | **77.69%** | — | 23.04% | — |
+| − Lovász (Triple loss) | 79.76% | 77.67% | 68.63% | **77.92%** | +0.23p | 21.61% | **−1.43p** |
+| − 5-ch (3-ch 2.5D ±1) | 82.70% | 77.05% | 66.25% | **77.14%** | −0.55p | 11.99% | **−11.05p** ⚠️ |
+| − xline-aware aug | 80.21% | 76.86% | 65.92% | **76.88%** | −0.81p | 13.16% | **−9.88p** ⚠️ |
+
+**Vurgu cümleleri (ezberlenecek):**
+- "5-channel 2.5D context Class 4 Zechstein için **olmazsa olmaz** — 3-channel'a düşürünce Class 4 Test2 %23'ten %12'ye iniyor."
+- "xline-aware augmentation hem cross-line genelleme (Test2 −2.77p) hem Class 4 (−9.88p) için kritik."
+- "Lovász Combined'a etki yapmıyor ama doğrudan **minör sınıf surrogate** olduğu için Class 4 için katkı sağlıyor (−1.43p)."
+
+**Sınırlılıklar:**
+- Tek-seed (SEED=42 only) — multi-seed ablation için 3x GPU bütçesi gerekli, sınırlandırıldı
+- TTA varyant ablation (multi-scale / hflip-only / no-TTA) yapılmadı (checkpoint transferi yapılamadı)
+- Mixup / Focal alpha / Label smoothing ablation'ı yok (2^N matris zaman bütçesinde sığmadı)
+
+Kaynak: [results/metrics/ablation_summary.md](../../results/metrics/ablation_summary.md) + `ablation_*_metrics.json`
+
+---
+
+## 11. KESINLIKLE KARIŞTIRMA Listesi
 
 Sunumda **yanlışlıkla** söylenmemesi gereken sayılar:
 

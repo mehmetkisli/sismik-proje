@@ -1,6 +1,6 @@
 # Kaldığın Yer — Devam Listesi
 
-> **Son senkronizasyon:** 2026-05-17
+> **Son senkronizasyon:** 2026-05-17 (Windows PC'de ablation paketi koşturuldu + sunum dosyalarına işlendi)
 > **Hedef:** 15 Haziran 2026 final seminer (29 gün kaldı)
 > **Bu dosya:** Diğer makinede kaldığın yerden devam ederken ilk açacağın dosya. Diğer her şey bunun pointer'ı.
 
@@ -29,75 +29,26 @@
   - tab:perclass başlık hatası ("v9 tek-seed" diyordu, içerik v7-fixed idi) düzeltildi
   - 10 etiket/ref, 10 table, 11 tabular, 2 figure, 15 cite — hepsi dengeli
   - Bibliografi: UmixClick 2025 referansı eklendi
+- ✅ **(2026-05-17) Windows PC ortamı sıfırdan kuruldu** (conda `sismik` env, Python 3.11, PyTorch 2.6+cu124, RTX 4070)
+- ✅ **(2026-05-17) Veri Zenodo'dan otomatik indirildi** (`data/train/`, `data/test_once/` hazır)
+- ✅ **(2026-05-17) `scripts/eval_originalres.py` script'i YAZILDI** (Madde 0) — `evaluate_ensemble.py` adapte edildi, softmax orijinal çözünürlüğe upsample ediliyor, FwIoU dahil. Koşum yapılamadı (checkpoint transferi yapılmadı).
+- ✅ **(2026-05-17) Ablation paketi koşturuldu** (3 training ablation, ~3.5 saat GPU toplam)
+  - `--no-lovasz`: Combined 77.92% (Δ +0.23p), C4 Test2 21.61% (Δ −1.43p)
+  - `--channels 3`: Combined 77.14% (Δ −0.55p), C4 Test2 11.99% (Δ −11.05p)
+  - `--no-xline-aware`: Combined 76.88% (Δ −0.81p), C4 Test2 13.16% (Δ −9.88p)
+  - Çıktı: `results/metrics/ablation_summary.md` + `ablation_*_metrics.json`
+  - Bulgu: 5-ch 2.5D ve xline-aware aug Class 4 için **olmazsa olmaz** (her biri ~−10p)
+- ✅ **(2026-05-17) Ablation sonuçları sunum dosyalarına işlendi** (Madde 2)
+  - [`SUNUM_SCRIPTI.md`](SUNUM_SCRIPTI.md) → S5 cevabı gerçek tabloyla güncellendi
+  - [`slides_v9_backup.md`](slides_v9_backup.md) → YS-4 tablo TBD'siz, gerçek sayılarla
+  - [`SAYILAR_KANONIK.md`](SAYILAR_KANONIK.md) → yeni Madde 10 (Ablation Sonuçları) eklendi
+- ⚠️ **(2026-05-17) Mac→PC checkpoint transferi yapılmadı** — bu yüzden Madde 0 (eval_originalres koşumu) ve TTA varyant ablation (Madde 1 #4) atlandı. İkisi de tez/sunumda "future work" olarak kalır (tez Bölüm V.G zaten "pending" diyor, sunum YS-4 not düşüldü).
 
 ---
 
 ## 🔴 Kalan İşler (öncelik sırasına göre)
 
-### 0. Original-resolution evaluator scripti **(GPU — 1-2 saat)**
-
-**Durum:** Script henüz YAZILMADI. Tez Bölüm V.G'de "bekleyen iş" olarak işaretli — sunum öncesi yetişirse Alaudah birebir kıyas iddiası %100 sağlam olur.
-
-**Yapılacak (Mac'te yazılır → PC'de koşar):**
-
-1. Yeni script: `scripts/eval_originalres.py`
-   - 3 v9 seed checkpoint'ini yükle (`checkpoints_v7/v9_seed_{42,43,44}_best.pth`)
-   - Test1 (701×255) ve Test2 (701×255) volümlerini **orijinal çözünürlükte** oku
-   - Slice-by-slice: input → 384×384 resize → model softmax → **701×255'e geri upsample** → ensemble averaging
-   - Argmax → orijinal-çözünürlük etiketleriyle karşılaştır
-   - mIoU / PA / MCA / FwIoU / per-class IoU hesapla
-   - JSON üret: `results/metrics/v9_ensemble_originalres_metrics.json`
-
-2. Tez'i güncelle: Bölüm V.G "evaluator çözünürlüğü kaveatı" → "orijinal-res kıyas tamamlandı, fark Δ puan"
-
-**Önemli:** Script yazma ~30 dk Mac'te yapılabilir; sonra git push → PC'de pull + çalıştır (~1-2 saat GPU).
-
----
-
-### 1. Ablation paketi koş (GPU — ~8 saat) **← BUNDAN DEVAM**
-
-Eğitim makinesinde çalıştır. Detaylı kılavuz: [`../../ablation/README.md`](../../ablation/README.md)
-
-**Sırayla:**
-
-```bash
-# Sanity-check (5-10 dk) — eğitim doğru başlıyor mu?
-.venv/Scripts/python.exe ablation/train_v9_ablation.py --no-lovasz --epochs 3
-
-# 1) Lovász OFF (~2.5 saat)
-.venv/Scripts/python.exe ablation/train_v9_ablation.py --no-lovasz
-
-# 2) 3-channel (~2.5 saat)
-.venv/Scripts/python.exe ablation/train_v9_ablation.py --channels 3
-
-# 3) xline-aware aug OFF (~2.5 saat)
-.venv/Scripts/python.exe ablation/train_v9_ablation.py --no-xline-aware
-
-# 4) TTA varyantları (~30 dk inference)
-.venv/Scripts/python.exe ablation/eval_tta_variants.py
-
-# 5) Sonuçları tabloya çevir
-.venv/Scripts/python.exe ablation/merge_ablation_results.py
-```
-
-**Çıktı:** `results/metrics/ablation_summary.md` + `ablation_summary.json`
-
-**Disk gereksinim:** ~2 GB checkpoint. Sığamıyorsa eski ablation_*.pth'leri silebilirsin (best.pth'ler kalsın).
-
----
-
-### 2. Ablation sonuçlarını sunuma işle (Claude yapacak — ~10 dk)
-
-Ablation bittikten sonra, `ablation_summary.md` içeriğini Claude'a yapıştır. Claude şunları güncelleyecek:
-
-- [`SUNUM_SCRIPTI.md`](SUNUM_SCRIPTI.md) → Beklenen Sorular S5 (ablation cevabı) gerçek sayılarla
-- [`slides_v9_backup.md`](slides_v9_backup.md) → YS-4 yedek slaydındaki TBD'ler
-- [`SAYILAR_KANONIK.md`](SAYILAR_KANONIK.md) → "9. Eksik Sayılar" listesinden ablation maddesi çıkar
-- Sunuma "ablation hikâyesi" paragrafı (hangi bileşen ne kadar katkı, vurgu cümlesi)
-
----
-
-### 3. Slayt 2 görseli (manuel, ~15 dk)
+### 1. Slayt 2 görseli (manuel, ~15 dk)
 
 Marp slaytında 2. slayt `assets/whatsapp/` placeholder kullanıyor:
 
@@ -115,7 +66,7 @@ Sonra [`slides_v9_marp.md:42`](slides_v9_marp.md) satırını uygun dosya adıyl
 
 ---
 
-### 4. DeepLab diyagramı rötuş (opsiyonel, ~10 dk)
+### 2. DeepLab diyagramı rötuş (opsiyonel, ~10 dk)
 
 `results/figures/deeplab_block_diagram.png`'de skip connection oku Concat kutusunun içine çakışıyor. Eğer rahatsız ederse:
 
@@ -128,7 +79,7 @@ venv/bin/python scripts/generate_presentation_diagrams.py
 
 ---
 
-### 5. Marp slaytları PDF'e çevir (~5 dk)
+### 3. Marp slaytları PDF'e çevir (~5 dk)
 
 ```bash
 # Marp CLI kuruluysa:
@@ -142,14 +93,14 @@ PDF'ler: `docs/sunum/slides_v9_marp.pdf` + `slides_v9_backup.pdf`
 
 ---
 
-### 6. Provalar — 3 tam tekrar (sen yapacaksın, ~40 dk × 3 = 2 saat + analiz)
+### 4. Provalar — 3 tam tekrar (sen yapacaksın, ~40 dk × 3 = 2 saat + analiz)
 
 | # | İş | Hedef | Notlar |
 |---|---|---|---|
-| 6a | **Prova 1** — tam 40 dk sesli prova, ses kaydı al | Zaman ölçümü, sorunlu geçişleri işaretle | İlk seferde 45+ dk olabilir, sıkıştırma yerleri belirle |
-| 6b | Kayıt analizi | Slayt başı zaman bütçesi tablosu | "Burada yavaşladım", "burada nefes almadım" notları |
-| 6c | **Prova 2** — revize edilmiş script + slayt | Akıcılık | Q&A senaryosu da dene (S1, S6, S7, S10 sorulacak gibi davran) |
-| 6d | **Prova 3** — final | Cila + ezberleme | Anahtar mesajlar 4 madde (script sonunda) sıkı ezberle |
+| 4a | **Prova 1** — tam 40 dk sesli prova, ses kaydı al | Zaman ölçümü, sorunlu geçişleri işaretle | İlk seferde 45+ dk olabilir, sıkıştırma yerleri belirle |
+| 4b | Kayıt analizi | Slayt başı zaman bütçesi tablosu | "Burada yavaşladım", "burada nefes almadım" notları |
+| 4c | **Prova 2** — revize edilmiş script + slayt | Akıcılık | Q&A senaryosu da dene (S1, S6, S7, S10 sorulacak gibi davran) |
+| 4d | **Prova 3** — final | Cila + ezberleme | Anahtar mesajlar 4 madde (script sonunda) sıkı ezberle |
 
 **Önemli:** [`SAYILAR_KANONIK.md`](SAYILAR_KANONIK.md) → "10. KESINLIKLE KARIŞTIRMA Listesi"ni ezberle. Provada yanlış sayı söylemek = sunum sırasında düzeltilmesi zor hata.
 
