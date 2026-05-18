@@ -272,8 +272,8 @@ def make_methodology_fix_schema():
 # 3) DeepLabV3+ Blok Diyagramı
 # ---------------------------------------------------------------------------
 def make_deeplab_diagram():
-    fig, ax = plt.subplots(figsize=(14, 6))
-    ax.set_xlim(0, 14)
+    fig, ax = plt.subplots(figsize=(14.5, 6))
+    ax.set_xlim(0, 14.5)
     ax.set_ylim(0, 6)
     ax.axis("off")
 
@@ -336,16 +336,16 @@ def make_deeplab_diagram():
 
     # Decoder
     box(8.65, 3.0, 2.0, 0.9, "Decoder\n(upsample ×4)", color=NAVY, fontsize=10)
-    # Low-level skip
+    # Low-level skip (arc altında, decoder'ın sol kenarına gelir; Concat'a değmez)
     ax.add_patch(
         FancyArrowPatch(
-            (4.2, 2.35), (8.65, 2.7),
-            connectionstyle="arc3,rad=-0.25",
+            (4.2, 2.0), (8.65, 3.15),
+            connectionstyle="arc3,rad=-0.35",
             arrowstyle="->,head_width=6,head_length=10",
             lw=1.6, color="#4dabf7",
         )
     )
-    ax.text(6.4, 1.5, "Skip connection\n(low-level features)",
+    ax.text(6.4, 0.75, "Skip connection\n(low-level features)",
             fontsize=9, color="#1864ab", style="italic", ha="center")
 
     arrow(10.7, 3.45, 11.25, 3.45)
