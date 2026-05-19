@@ -72,25 +72,25 @@ Birçok sonraki makale bu **coğrafi split'i kullanmaz**:
 
 ## 4. Bizim Sayıların Literatürdeki Yeri (Sunum Yorumu)
 
-### 4.1 Net Bulgular (v7-fixed sonuçları geldikten sonra)
+### 4.1 Net Bulgular (v9 ensemble, original-resolution evaluator — 2026-05-19)
 
-- **v7-fixed sayıları Alaudah baseline'a yakın değerlerde görünüyor** (Combined):
-  - PA: 0.932 vs Alaudah 0.905 → **+2.7 puan**
-  - MCA: 0.861 vs Alaudah 0.817 → **+4.5 puan**
-  - FwIoU: 0.878 vs Alaudah 0.832 → **+4.6 puan**
-- ⚠️ **ÖNEMLİ KAVET:** Bizim sayılarımız 320×320 resized space'te hesaplandı; Alaudah orijinal çözünürlükte (701×255 / 401×255) evaluator kullanır. **"Geçtik" iddiasını yapmadan önce aynı evaluator protokolünü çalıştırmak gerekir** — bu original-resolution evaluator henüz yazılmadı.
-- Şu anki dürüst ifade: **"Alaudah baseline seviyesinde, methodology hataları düzeltilmiş, dürüstçe rapor edilmiş bir DeepLabV3+ baseline"**. Original-resolution evaluator yapıldıktan sonra bu kıyas kesinleşecek.
-- mIoU sayımız (0.767) "düşük" görünür ama Alaudah bu metriği rapor etmemiştir — bu yöndeki kıyas zaten geçersiz.
-- AdaSemSeg Baseline-1 (target-only, F3 inline FwIoU 0.86) bize en yakın kıyasdır; bizim Combined FwIoU 0.878 ile yakın bantta ama AdaSemSeg farklı F3 split'i kullandığı için doğrudan kıyas tartışmalı.
+- **v9 ensemble aynı evaluator protokolünde Alaudah baseline'ını üç metrikte geçiyor** (Combined):
+  - PA: 0.9401 vs Alaudah 0.905 → **+3.51 puan**
+  - MCA: 0.8753 vs Alaudah 0.817 → **+5.83 puan**
+  - FwIoU: 0.8917 vs Alaudah 0.832 → **+5.97 puan**
+- ✅ **Original-resolution evaluator koşturuldu (2026-05-19).** `scripts/eval_originalres.py` Alaudah'ın değerlendirme prosedürünü birebir taklit eder: tahmin 384×384'te, softmax orijinal H×W'ye upsample, argmax + metrik ham çözünürlükte. Resize vs orig-res Combined mIoU farkı sadece +0.21p — değerlendirme protokolü pratikte stabil.
+- Şu anki dürüst ifade: **"Alaudah baseline'ı aynı evaluator protokolünde üç metrikte geçen, methodology hataları düzeltilmiş, multi-seed varyans raporlayan modern bir DeepLabV3+ baseline."**
+- mIoU sayımız (orig-res 0.7931, resize 0.791) "düşük" görünür ama Alaudah bu metriği rapor etmemiştir — direkt kıyas dışı; original-res sayımız referans olarak dosyalandı.
+- AdaSemSeg Baseline-1 (target-only, F3 inline FwIoU 0.86) bize en yakın kıyasdır; bizim Combined FwIoU 0.8917 ile yakın bantta ama AdaSemSeg farklı F3 split'i kullandığı için doğrudan kıyas tartışmalı.
 - Wiley 2022 / CONSS 2023'ün 0.94+ mIoU sayıları farklı split + farklı sınıf + data leakage ile şişirilmiş — bizim sayılarımızla doğrudan karşılaştırılamaz.
 
 ### 4.2 Sunum İçin Dürüst İfadeler
 
-> *"DeepLabV3+ + EfficientNet-B4 + 2.5D modelimiz, Alaudah 2019 geographic split'ine sadık kalan az sayıda yöntemden biridir. Combined mIoU 0.77 sayımız Alaudah'ın 'best baseline'ı (FwIoU 0.832, PA 0.905) ile birebir kıyaslanabilir değil — farklı metrikler. Aynı metrikleri (FwIoU, PA, MCA) lokal modelimizden hesapladığımızda baseline'a yakın değerler elde ediyoruz, ancak evaluator çözünürlük farkı (320×320 vs orijinal) nedeniyle 'geçtik' iddiasını yapmıyoruz — original-resolution evaluator bekleyen iş."*
+> *"DeepLabV3+ + EfficientNet-B4 + 2.5D modelimiz, Alaudah 2019 geographic split'ine ve original-resolution evaluator'üne sadık kalan az sayıda yöntemden biridir. Aynı evaluator protokolünde PA, MCA ve FwIoU üçünde de Alaudah baseline'ını geçiyoruz (+3.51 / +5.83 / +5.97 puan). mIoU sayımız (0.7931) Alaudah'ta rapor edilmediği için direkt kıyas yok."*
 
-> *"Literatürde rapor edilen 0.94+ mIoU sayıları (Wiley 2022, CONSS 2023) genellikle rastgele patch split veya farklı sınıf bölünmesi kullanır — Alaudah'ın orijinal coğrafi split'i değil. Bu yüzden bu sayılar bizim 0.77'mizle doğrudan karşılaştırılamaz."*
+> *"Literatürde rapor edilen 0.94+ mIoU sayıları (Wiley 2022, CONSS 2023) genellikle rastgele patch split veya farklı sınıf bölünmesi kullanır — Alaudah'ın orijinal coğrafi split'i değil. Bu yüzden bu sayılar bizim 0.7931'imizle doğrudan karşılaştırılamaz."*
 
-> *"Mevcut çalışma SOTA iddiasında değil. Modern literatür (2025-2026) sismik-spesifik foundation model'lara (SFM, GFM) doğru evrildi. Bizim ImageNet pretrained EfficientNet-B4 yaklaşımımız bu perspektifte baseline seviyesinde, methodology titizliği ile değerlendirilen bir DeepLabV3+ baseline'ı sunar."*
+> *"Mevcut çalışma SOTA iddiasında değil. Modern literatür (2025-2026) sismik-spesifik foundation model'lara (SFM, GFM) doğru evrildi. Bizim ImageNet pretrained EfficientNet-B4 yaklaşımımız bu perspektifte modern, methodology titizliği ile değerlendirilen, Alaudah baseline'ını birebir kıyasta geçen bir DeepLabV3+ baseline'ı sunar."*
 
 ### 4.3 Eğer Test1/Test2 ayrımı sorulursa
 

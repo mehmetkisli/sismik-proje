@@ -2,7 +2,7 @@
 
 > **Sunum + tez + tüm dokümanlarda tek doğru kaynak.** Ana model = **v9 Multi-seed Ensemble** (SEED 42+43+44 softmax averaging). Sunumda söylenen her sayı bu dosyaya uymak zorunda.
 >
-> **Son güncelleme:** 2026-05-17 (ablation paketi eklendi — Madde 11)
+> **Son güncelleme:** 2026-05-19 (Original-resolution evaluator sonuçları eklendi — Madde 2.5; Alaudah birebir kıyas mümkün, formal "geçtik" iddiası tezde meşru)
 
 ---
 
@@ -25,6 +25,45 @@ Tek bir cümlede söylemek gerekirse, **bu** sayı tezin ve sunumun ana sonucudu
 | **FwIoU** | **0.8888** | **0.8964** | **0.8908** |
 
 Kaynak: [results/metrics/v9_ensemble_metrics.json](../../results/metrics/v9_ensemble_metrics.json) + [results/metrics/fwiou_ensemble_recompute.json](../../results/metrics/fwiou_ensemble_recompute.json) (FwIoU post-hoc hesaplandı: ensemble_per_class_iou × gt_label_frequencies)
+
+---
+
+## 2.5 Original-Resolution Evaluator Sonuçları (Alaudah birebir kıyas)
+
+> **Çalıştırma tarihi:** 2026-05-19 (PC GPU üzerinde, 3-seed ensemble, multi-scale TTA, softmax orijinal çözünürlüğe upsample edilmiş).
+>
+> **Önemi:** Bu sayılar Alaudah 2019 baseline ile **aynı evaluator protokolünde** elde edildi. Formal "Alaudah'ı geçtik" iddiası bu tabloya dayanır.
+
+| Metrik | Test1 (axis=inline, 701×255) | Test2 (axis=xline, 200×255) | **Combined** |
+|---|---:|---:|---:|
+| mIoU | 0.8053 | 0.6771 | **0.7931** |
+| FwIoU | 0.8884 | 0.8972 | **0.8917** |
+| PA | 0.9379 | 0.9426 | **0.9401** |
+| MCA | 0.9004 | 0.7517 | **0.8753** |
+| Class 4 Test2 IoU | — | **0.1799** | — |
+
+**Alaudah karşısında (aynı evaluator protokolünde):**
+
+| Metrik | Alaudah 2019 best | **v9 ensemble (orig-res)** | Fark |
+|---|---:|---:|---:|
+| PA | 0.905 | **0.9401** | **+3.51 puan** |
+| MCA | 0.817 | **0.8753** | **+5.83 puan** |
+| FwIoU | 0.832 | **0.8917** | **+5.97 puan** |
+| mIoU | (rapor edilmemiş) | **0.7931** | direkt kıyas yok |
+
+**Resized 384 vs Original-res (aynı model, farklı evaluator):**
+
+| Metrik | Resized 384 | Original-res | Δ |
+|---|---:|---:|---:|
+| Combined mIoU | 0.7910 | **0.7931** | +0.21p |
+| Combined FwIoU | 0.8908 | 0.8917 | +0.09p |
+| Test1 mIoU | 0.7752 | **0.8053** | +3.01p ↑ |
+| Test2 mIoU | 0.6869 | 0.6771 | −0.98p |
+| Class 4 Test2 | 0.1830 | 0.1799 | −0.31p |
+
+**Mesaj:** Resized vs original-res sayıları ±1 puan içinde — değerlendirme protokolü stabil. Test1 mIoU orijinal-res'te +3p kazanıyor (resize ince sınıf sınırlarını bozuyordu). Combined mIoU pratikte değişmiyor.
+
+Kaynak: [results/metrics/v9_ensemble_originalres_metrics.json](../../results/metrics/v9_ensemble_originalres_metrics.json) + [eval_originalres.log](../../eval_originalres.log)
 
 ---
 
@@ -107,21 +146,22 @@ Class 4 Test2 IoU:
 | Yöntem | mIoU | FwIoU | PA | MCA | Karşılaştırılabilir? |
 |---|---:|---:|---:|---:|---|
 | Alaudah 2019 section+aug+skip (best baseline) | — | 0.832 | 0.905 | 0.817 | ✅ Aynı split, orijinal eval |
-| **v9 ensemble (bizim)** | **0.7910** | **0.891** | **0.9402** | **0.8734** | ⚠️ Aynı split, 384×384 resized eval |
+| **v9 ensemble (orig-res eval) — bizim** | **0.7931** | **0.8917** | **0.9401** | **0.8753** | ✅ **Aynı split + aynı evaluator — birebir kıyas** |
+| v9 ensemble (resized 384 eval) | 0.7910 | 0.8908 | 0.9402 | 0.8734 | ⚠️ Aynı split, 384×384 resized |
 | v7-fixed (referans baseline) | 0.7668 | 0.878 | 0.932 | 0.861 | ⚠️ Aynı split, 320×320 resized eval |
 | AdaSemSeg target-only | — | 0.86 | 0.91 | 0.89 | ⚠️ Farklı F3 split |
 | UmixClick (interactive) | 0.7666 | — | 0.9351 | — | ❌ Interactive, adil değil |
 | Wiley 2022 ensemble | 0.9392 | — | 0.9852 | — | ❌ Random split + 7 sınıf |
 
-**Savunma cümlesi (ezberlenecek):** "0.94+ mIoU sayılarının çoğu (Wiley 2022, CONSS 2023) **random patch split + farklı sınıf bölünmesi** kullanır — Alaudah'ın orijinal coğrafi split'ine sadık kalan az sayıda yöntemden biriyiz. PA 0.940 / MCA 0.873 / FwIoU 0.891 değerlerimiz Alaudah baseline'ının (PA 0.905 / MCA 0.817 / FwIoU 0.832) **sayısal olarak üzerinde** — sırasıyla +3.5, +5.6, +5.9 puan. Ancak doğrudan 'geçtik' iddiası için aynı evaluator gerekli: bizim sayılar 384×384 resized space'te, Alaudah orijinal çözünürlükte. Original-resolution evaluator future work — bu yüzden formal 'geçtik' iddiası yerine 'baseline üzerinde, protokol çekincesiyle' diyoruz."
+**Savunma cümlesi (ezberlenecek):** "0.94+ mIoU sayılarının çoğu (Wiley 2022, CONSS 2023) **random patch split + farklı sınıf bölünmesi** kullanır — Alaudah'ın orijinal coğrafi split'ine **ve original-resolution evaluator'üne** sadık kalan az sayıda yöntemden biriyiz. **Aynı evaluator protokolünde** Alaudah baseline'ını PA +3.51p (0.9401 vs 0.905), MCA +5.83p (0.8753 vs 0.817), FwIoU +5.97p (0.8917 vs 0.832) ile geçiyoruz. mIoU'yu Alaudah rapor etmediği için bu metrikte direkt kıyas yok — original-resolution Combined mIoU'muz 0.7931."
 
 ---
 
 ## 9. Eksik Sayılar (TBD — sunum öncesi tamamlanmalı)
 
 - ~~**v9 ensemble FwIoU**~~ — ✅ Hesaplandı: **Combined 0.8908, Test1 0.8888, Test2 0.8964** ([fwiou_ensemble_recompute.json](../../results/metrics/fwiou_ensemble_recompute.json), 2026-05-18).
-- **TTA varyant ablation** — multi-scale vs HFlip-only vs no-TTA (tezin uzun versiyonunda, sunumdan önce yetişmez — Mac → bu PC checkpoint transferi yapılmadığı için).
-- **Original-resolution evaluator sayıları** — Alaudah birebir kıyas için (future work — sunumdan önce yetişmez, dürüstçe söylenecek).
+- ~~**Original-resolution evaluator sayıları**~~ — ✅ **Hesaplandı (2026-05-19):** Combined mIoU 0.7931, FwIoU 0.8917, PA 0.9401, MCA 0.8753. Alaudah birebir kıyas mümkün, formal "geçtik" iddiası meşru. Detay Madde 2.5'te.
+- **TTA varyant ablation** — multi-scale vs HFlip-only vs no-TTA (tezin uzun versiyonunda, sunumdan önce yetişmez).
 
 ---
 
@@ -161,5 +201,5 @@ Sunumda **yanlışlıkla** söylenmemesi gereken sayılar:
 | "Combined mIoU 0.793" | 0.793 = v7-**broken** (leakage'lı). Doğrusu **0.791 ensemble** |
 | "Combined mIoU 0.767" | 0.767 = v7-fixed (önceki). Doğrusu **0.791 ensemble** |
 | "Class 4 Test2 0.230" | Tek-seed outlier. Doğrusu **0.183 ± 0.04 ensemble** |
-| "Alaudah'ı geçtik" | Original-eval yok, **"baseline seviyesinde, dürüst rapor"** |
+| "Alaudah'ı geçtik" (üstün ton, bağlamsız) | Doğru cümle: **"Aynı evaluator protokolünde Alaudah baseline'ını PA +3.5p, MCA +5.8p, FwIoU +6.0p ile geçtik"** — bağlamlı, sayılı, dürüst |
 | "SOTA aldık" | SOTA değil — **"methodology rigor + dürüst baseline"** |

@@ -201,19 +201,23 @@ Ek karmaşıklık: ~5 satır. Etki: 3 sızıntı tamamen kapatıldı.
 
 ---
 
-## YS-11 [S12] — Resize evaluator etki tahmini
+## YS-11 [S12] — Resize vs Original-Res ölçüldü (2026-05-19)
 
-**Eval çözünürlüğünün metriklere etkisi (deneysel tahmin):**
+**Original-resolution evaluator koşturuldu — gerçek farklar:**
 
-| Metrik | Resize hassasiyeti | Tahmini fark (384 vs orijinal) |
-|---|---|---|
-| Pixel Accuracy | Düşük | ±0.5 puan |
-| Mean Class Acc | Düşük | ±1.0 puan |
-| mIoU / FwIoU | **Yüksek** | **±2–4 puan** (öngörülmesi zor) |
+| Metrik | Resize 384 | Original-res | Fark |
+|---|---:|---:|---:|
+| Combined mIoU | 0.7910 | **0.7931** | +0.21p |
+| Combined FwIoU | 0.8908 | **0.8917** | +0.09p |
+| Combined PA | 0.9402 | **0.9401** | ≈ 0 |
+| Combined MCA | 0.8734 | **0.8753** | +0.19p |
+| Test1 mIoU | 0.7752 | **0.8053** | **+3.01p** ↑ |
+| Test2 mIoU | 0.6869 | 0.6771 | −0.98p |
+| C4 Test2 IoU | 0.1830 | 0.1799 | −0.31p |
 
-**Sebep:** Resize sırasında **küçük sınıfların sınır pikselleri yumuşatılır** — IoU'da büyük etki, accuracy'de küçük.
+**Bulgu:** Resize vs orig-res ±1p içinde — değerlendirme protokolü pratikte stabil. Test1 mIoU orig-res'te +3p kazanıyor (resize ince sınıf sınırlarını bozuyormuş). Test2'de minimal düşüş.
 
-**Beklenti:** Orijinal-resolution evaluator yapıldığında mIoU bir miktar **düşebilir** (resize sınır pikselleri görmezden geliyor). Bunu da dürüstçe söylüyoruz.
+**Sonuç:** Aynı evaluator protokolünde **Alaudah baseline'ı geçildi** — PA +3.51p, MCA +5.83p, FwIoU +5.97p.
 
 ---
 

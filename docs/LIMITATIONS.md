@@ -110,6 +110,32 @@
 
 ---
 
+## 10. (Çözüldü 2026-05-19) Original-Resolution Evaluator Eksikliği
+
+**Sorun (geçmişte).** v9 ensemble metrikleri 384×384 resize edilmiş görüntü uzayında hesaplanıyordu. Alaudah 2019 baseline'ı ise orijinal çözünürlükte (Test1: 701×255, Test2: 200×255) değerlendirme yapıyordu. Bu protokol farkı, "Alaudah'ı geçtik" formal iddiasını engelliyordu — sadece "baseline üzerinde, protokol çekincesiyle" denebiliyordu.
+
+**Niçin önemli.** mIoU ve FwIoU resize işleminden duyarlıdır (özellikle azınlık sınıfların sınır pikselleri yumuşar). Aynı protokol kullanılmadan yapılan kıyaslar bilimsel olarak zayıftır.
+
+**Bu çalışmada ele alınma şekli (2026-05-19).** `scripts/eval_originalres.py` yazıldı ve PC GPU üzerinde koşturuldu. Script tahmini 384×384'te yapar, softmax çıktısını bilinear interpolation ile orijinal H×W'ye upsample eder, argmax ve metrikler orijinal çözünürlükte hesaplanır — Alaudah'ın evaluator prosedürünü birebir taklit eder.
+
+**Sonuçlar:**
+
+| Metrik | Resize 384 | **Original-res** | Δ |
+|---|---:|---:|---:|
+| Combined mIoU | 0.7910 | **0.7931** | +0.21p |
+| Combined FwIoU | 0.8908 | **0.8917** | +0.09p |
+| Combined PA | 0.9402 | **0.9401** | ≈ 0 |
+| Combined MCA | 0.8734 | **0.8753** | +0.19p |
+| Test1 mIoU | 0.7752 | **0.8053** | +3.01p |
+| Test2 mIoU | 0.6869 | 0.6771 | −0.98p |
+| C4 Test2 IoU | 0.1830 | 0.1799 | −0.31p |
+
+**Hâlâ açık kalan.** Yok — bu sınırlılık tam olarak kapatılmıştır. Aynı evaluator protokolünde Alaudah baseline'ı PA +3.51p, MCA +5.83p, FwIoU +5.97p ile geçilmiştir; formal "geçtik" iddiası bu noktadan itibaren bilimsel olarak meşrudur.
+
+Kaynak: [`results/metrics/v9_ensemble_originalres_metrics.json`](../results/metrics/v9_ensemble_originalres_metrics.json) + [`eval_originalres.log`](../eval_originalres.log).
+
+---
+
 ## Özet
 
 Bu çalışmanın güçlü yönleri (modern mimari, methodology fix, dürüst test protokolü) yanında, tek-tohumlu eğitim, sistematik ablation eksikliği, tek-volüm eğitim verisi ve Sınıf 4 Test2 çöküşü gibi sınırlılıklar açıkça kabul edilmektedir. Bu sınırlılıklar bilimsel bir tezin doğal parçasıdır; her biri "Future Work" başlığı altında somut adımlarla adreslenebilir niteliktedir.

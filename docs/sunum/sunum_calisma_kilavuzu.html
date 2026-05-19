@@ -923,12 +923,12 @@
       </div>
 
       <div class="speech">
-        <span class="label">Söyleyeceklerin</span>
+        <span class="label">Söyleyeceklerin (2026-05-19 güncellemesi)</span>
         Bu slayt sunumun <strong>en düzeltici slaytlarından biri</strong>. Literatür taradığınızda 0.94, 0.95 mIoU iddiaları görüyorsunuz — "bu adamlar nasıl bu kadar yüksek alıyor, ben neden alamadım" diye düşünmek doğal.
         <br><br>
-        Cevap: tablodaki gibi çoğu çalışma <strong>farklı protokol</strong> kullanıyor. <strong>Wiley 2022 random split + 7 sınıf</strong> kullanmış — biz Alaudah'ın geographic split'i ile çalışıyoruz, bu ikisi farklı problemler. <strong>CONSS 2023 kendi train/test düzenini</strong> kurmuş — yine direkt karşılaştırılamaz. <strong>UmixClick interactive</strong>, yani kullanıcı tıklaması var — adil zemin yok.
+        Cevap: tablodaki gibi çoğu çalışma <strong>farklı protokol</strong> kullanıyor. <strong>Wiley 2022 random split + 7 sınıf</strong> kullanmış — biz Alaudah'ın geographic split'i ile çalışıyoruz. <strong>CONSS 2023 kendi train/test düzenini</strong> kurmuş. <strong>UmixClick interactive</strong>, yani kullanıcı tıklaması var.
         <br><br>
-        Bizim adil referansımız <strong>Alaudah'ın 2019 best sonucu: PA 0.905, MCA 0.817, FwIoU 0.832</strong>. Üç metriğin üçünde de v9 ensemble bu sayıları <strong>sayısal olarak geçti</strong> — sırasıyla +3.5, +5.6, +6.0 puan. Ama burada bir <strong>protokol çekincesi</strong> var: bizim sayılar 384×384 resized space'te, Alaudah ise orijinal çözünürlükte. Aynı evaluator koşmadığım için "<em>geçtim</em>" diye formal iddia etmiyorum — bu pending iş.
+        Bizim adil referansımız <strong>Alaudah'ın 2019 best sonucu: PA 0.905, MCA 0.817, FwIoU 0.832</strong>. <strong>Aynı evaluator protokolünde</strong> (original-resolution, 2026-05-19'da koşturuldu) üç metriğin üçünde de v9 ensemble bu sayıları <strong>geçti</strong> — PA 0.9401 (+3.51p), MCA 0.8753 (+5.83p), FwIoU 0.8917 (+5.97p). mIoU'yu Alaudah rapor etmediği için bu metrikte direkt kıyas yok; Combined mIoU'muz original-res evaluator'da 0.7931.
       </div>
 
       <div class="terms">
@@ -966,31 +966,35 @@
             <p><span class="sublabel">FwIoU (Frequency-Weighted IoU):</span> Her sınıfın IoU'sunu <strong>piksel frekansıyla</strong> ağırlıklandır. Yani baskın sınıfların IoU'su daha çok ağırlık taşır. Bir nevi PA ile mIoU arası.</p>
             <p><span class="sublabel">MCA (Mean Class Accuracy):</span> Her sınıfın recall'unu (TP / (TP+FN)) ortala. Sınıf bazında, ama overlap değil sadece bulma oranı.</p>
             <p><span class="sublabel">Kritik gözlem:</span> Aynı modelin <strong>FwIoU değeri mIoU değerinden ~10-15 puan yüksek</strong> olabilir, çünkü baskın sınıflar (Rijnland) iyi tahmin edilir. Birini "mIoU" diye diğeriyle karıştırırsan büyük yanılgı.</p>
-            <p><span class="sublabel">Alaudah vs v9 — direkt kıyaslanabilir metrikler:</span></p>
+            <p><span class="sublabel">Alaudah vs v9 — aynı evaluator protokolünde (orig-res, 2026-05-19):</span></p>
             <ul>
-              <li><strong>PA:</strong> Alaudah 0.905 → v9 <strong>0.9402</strong> → <strong style="color: var(--cat-metric)">+3.5 puan</strong></li>
-              <li><strong>MCA:</strong> Alaudah 0.817 → v9 <strong>0.8734</strong> → <strong style="color: var(--cat-metric)">+5.6 puan</strong></li>
-              <li><strong>FwIoU:</strong> Alaudah 0.832 → v9 <strong>0.8920</strong> → <strong style="color: var(--cat-metric)">+6.0 puan</strong></li>
-              <li><strong>mIoU:</strong> Alaudah <em>rapor etmemiş</em> — direkt kıyas yok. Senin v9 = 0.791.</li>
+              <li><strong>PA:</strong> Alaudah 0.905 → v9 orig-res <strong>0.9401</strong> → <strong style="color: var(--cat-metric)">+3.51 puan</strong></li>
+              <li><strong>MCA:</strong> Alaudah 0.817 → v9 orig-res <strong>0.8753</strong> → <strong style="color: var(--cat-metric)">+5.83 puan</strong></li>
+              <li><strong>FwIoU:</strong> Alaudah 0.832 → v9 orig-res <strong>0.8917</strong> → <strong style="color: var(--cat-metric)">+5.97 puan</strong></li>
+              <li><strong>mIoU:</strong> Alaudah <em>rapor etmemiş</em> — direkt kıyas yok. v9 orig-res = 0.7931.</li>
             </ul>
-            <p><span class="sublabel">Sayısal sonuç:</span> Üç metrikte de <strong>v9 ensemble Alaudah'ı geçti</strong>. Yorum bırakacak yer yok — sayılar açık.</p>
-            <p><span class="sublabel">Niye yine de "geçtim" demiyorsun:</span> Aşağıdaki <em>Değerlendirme Çözünürlüğü</em> başlığına bak. Protokol farkı yüzünden formal iddia yapmıyorsun — ama bunun <strong>akademik bir disiplin tercihi</strong> olduğunu unutma. Sayılar zaten yüksek.</p>
-            <p><span class="sublabel">Sunumdaki işlevi:</span> Savunma argümanı #3. "0.94 görenler hangi metriğe baktığını bilmiyor olabilir." + somut kanıt: aynı metrikte ben Alaudah'ı geçtim, 0.94+ iddiası ise bu metrikte değil mIoU'da.</p>
+            <p><span class="sublabel">Resized vs original-res (aynı model):</span> Pratikte ±1 puan içinde. Combined mIoU 0.7910 → 0.7931 (+0.21p), Combined FwIoU 0.8908 → 0.8917 (+0.09p). Yani resize evaluator zaten orig-res'i çok iyi tahmin ediyormuş. Test1 mIoU orig-res'te +3p kazanıyor (resize ince sınıf sınırlarını bozuyordu).</p>
+            <p><span class="sublabel">Sonuç:</span> <strong>v9 ensemble aynı evaluator protokolünde Alaudah baseline'ını üç metrikte de geçti.</strong> Yorum bırakacak yer yok — sayılar açık, protokol birebir.</p>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> Savunma argümanı #3. "0.94 görenler hangi metriğe baktığını bilmiyor olabilir." + somut kanıt: aynı metrikte ben Alaudah'ı geçtim, 0.94+ iddiası ise farklı protokol/metrikten.</p>
           </div>
         </div>
 
         <div class="term data">
-          <div class="term-name">Değerlendirme Çözünürlüğü (Resize vs Original) <span class="term-badge">Sınırlılık</span></div>
+          <div class="term-name">Değerlendirme Çözünürlüğü (Resize vs Original) <span class="term-badge">Çözüldü — 2026-05-19</span></div>
           <div class="term-body">
-            <p><span class="sublabel">Sorun:</span> Kesitler 401×255 veya 701×255. ImageNet pretrained ağlar kare girdi sever (224, 384, 512). Bu yüzden sen <strong>384×384'e resize</strong> ediyorsun → tahmini 384×384'te yapıyorsun → metriği 384×384'te hesaplıyorsun.</p>
-            <p><span class="sublabel">Alaudah ne yapıyor:</span> Tahmini <strong>orijinal çözünürlükte</strong> (701×255 veya 401×255) değerlendiriyor. Resize aşamasında piksel sayıları değiştiği için metrikler doğrudan eşleşmez.</p>
-            <p><span class="sublabel">Hangi metrik bundan ne kadar etkilenir:</span></p>
+            <p><span class="sublabel">Geçmişteki sorun:</span> Kesitler 401×255 veya 701×255. ImageNet pretrained ağlar kare girdi sever; sen <strong>384×384'e resize</strong> ediyorsun → tahmini 384×384'te yapıyorsun → metriği 384×384'te hesaplıyordun. Alaudah ise <strong>orijinal çözünürlükte</strong> değerlendiriyor. Resize'la metrikler bire bir eşleşmiyordu.</p>
+            <p><span class="sublabel">Yapılan iş (2026-05-19):</span> <code>scripts/eval_originalres.py</code> koşturuldu (PC GPU üzerinde). Bu script tahmini 384×384'te yapıp <strong>softmax'i orijinal H×W'ye upsample ediyor</strong>, sonra argmax + metrik orijinal çözünürlükte hesaplanıyor. Alaudah'ın değerlendirme prosedürünü birebir taklit eder.</p>
+            <p><span class="sublabel">Resize vs Original-Res — bulgular:</span></p>
             <ul>
-              <li><strong>PA, MCA:</strong> Az etkilenir — piksel-başına metrikler.</li>
-              <li><strong>mIoU, FwIoU:</strong> Daha duyarlı — overlap orantısı resize'la değişir, özellikle ince sınıflarda.</li>
+              <li>Combined mIoU: 0.7910 → 0.7931 (+0.21p)</li>
+              <li>Combined FwIoU: 0.8908 → 0.8917 (+0.09p)</li>
+              <li>Test1 mIoU: 0.7752 → 0.8053 (+3.01p) ↑</li>
+              <li>Test2 mIoU: 0.6869 → 0.6771 (−0.98p)</li>
+              <li>C4 Test2: 0.1830 → 0.1799 (−0.31p)</li>
             </ul>
-            <p><span class="sublabel">Senin dürüst tutumun:</span> "Alaudah'ı geçtim" <em>demiyorsun</em>. "Yakın bantta, ama <strong>original-resolution evaluator</strong> bekleyen iş" diyorsun. Slayt #30'da limitations olarak da geçecek.</p>
-            <p><span class="sublabel">Sunumdaki işlevi:</span> Savunma argümanı #4 + dürüstlük sinyali. Hocaya "kendi sınırlılığımı biliyorum" mesajı.</p>
+            <p><span class="sublabel">Önemli not:</span> Combined mIoU pratikte aynı — resize evaluatorda yapılan değerlendirme zaten orig-res'i çok iyi tahmin ediyormuş. Test1 mIoU ise orig-res'te +3p kazanıyor; resize ince sınıf sınırlarını bozuyordu. Test2'de minimal düşüş (Zechstein bölgesindeki ince diapir kenarları orig-res'te daha sert metriklenmiş olabilir).</p>
+            <p><span class="sublabel">Sunumdaki güncel tutumun:</span> "Aynı evaluator protokolünde Alaudah'ı PA +3.51p, MCA +5.83p, FwIoU +5.97p ile geçtim" — <strong>formal iddia</strong>. Protokol çekincesi yok.</p>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> Savunma argümanı #4. "Aynı evaluator koşturdum, geçtim, kanıt elimde" mesajı.</p>
           </div>
         </div>
 
@@ -1006,32 +1010,35 @@
         </div>
 
         <div class="term metric">
-          <div class="term-name">⭐ "Sayısal Olarak Geçtim, Ama İddia Etmiyorum" Cümlesi <span class="term-badge">Sunum Stratejisi</span></div>
+          <div class="term-name">⭐ "Aynı Protokolde Geçtim" Cümlesi <span class="term-badge">Sunum Stratejisi</span></div>
           <div class="term-body">
-            <p><span class="sublabel">Cümlenin yapısı (iki katmanlı):</span></p>
+            <p><span class="sublabel">Cümlenin yapısı (artık tek katmanlı, defansif değil):</span></p>
             <ul>
-              <li><strong>Pozitif katman:</strong> "Alaudah'ın baseline'ını <em>üç metriğin üçünde de sayısal olarak geçtim</em>: PA +3.5, MCA +5.6, FwIoU +6.0 puan."</li>
-              <li><strong>Çekinme katmanı:</strong> "Ama 'geçtim' diye formal iddia etmiyorum — çünkü Alaudah orijinal çözünürlükte (701×255, 401×255) evaluator koşturuyor, ben 384×384 resized space'te. Aynı evaluator pending iş."</li>
+              <li><strong>Formal iddia:</strong> "Alaudah baseline'ını <em>aynı evaluator protokolünde</em> üç metriğin üçünde de geçtim: PA +3.51p (0.9401 vs 0.905), MCA +5.83p (0.8753 vs 0.817), FwIoU +5.97p (0.8917 vs 0.832). Original-resolution evaluator 2026-05-19'da koşturuldu, sonuçlar `results/metrics/v9_ensemble_originalres_metrics.json`'da dosyalı."</li>
             </ul>
-            <p><span class="sublabel">Niye bu kombinasyon güçlü:</span> İki retorik avantaj:</p>
+            <p><span class="sublabel">Niye bu güçlü:</span></p>
             <ul>
-              <li><strong>Yumuşak iddia:</strong> Sayılar ortada — hocan "ama sen geçmedin" diyemez. Geçtin.</li>
-              <li><strong>Pre-emptive disarm:</strong> Original-resolution evaluator çekincesini <em>sen önce söylüyorsun</em>. Hocan o soruyu soracak olsa, "haklısınız, koşmadım, future work" diyebilirsin → güven verir.</li>
+              <li><strong>Birebir kıyas:</strong> Aynı evaluator (orig-res, softmax orijinal H×W'ye upsample). Aynı split. Aynı 6 sınıf. Yorum bırakacak yer yok.</li>
+              <li><strong>Hocan "evaluator farklı" diyemez:</strong> Birebir koşturuldu. JSON elinde, replikable.</li>
+              <li><strong>0.94+ iddiaları zayıflıyor:</strong> O sayılar farklı split veya farklı metrik. Aynı protokolde aynı metrikte ben Alaudah'ı geçtim.</li>
             </ul>
-            <p><span class="sublabel">Niye "geçtim" iddiası çok daha güvensiz olurdu:</span> Eğer agresif "ben Alaudah'ı geçtim" deseydin, hocan original-resolution sorusunu sorardı; cevabın "koşmadım" olur → ağırlık kaybı. Bu yüzden <strong>"sayılar yüksek + protokol pending + iddia yapmıyorum"</strong> üçlüsü daha sağlam.</p>
-            <p><span class="sublabel">Pending iş'in durumu:</span> <code>scripts/eval_originalres.py</code> <em>yazılmış</em> ama Mac → PC checkpoint transferi yapılmadığı için koşturulmadı. Sunumdan önce 1-2 saatlik bir iş; istersen seminer öncesi koşturup formal iddiaya geçebilirsin. (LIMITATIONS.md ve future work'te belgeli.)</p>
-            <p><span class="sublabel">Sunumdaki işlevi:</span> Akademik olgunluk iddianın taşıyıcı cümlesi. Slayt #28'de tam metniyle savunma cümlesi olarak geri gelecek.</p>
+            <p><span class="sublabel">Soru gelirse hazır cevap:</span></p>
+            <ul>
+              <li>"Aynı evaluator emin misin?" → "Evet, `eval_originalres.py` Alaudah'ın prosedürünü birebir taklit ediyor: tahmin 384×384'te yapılır, softmax orijinal çözünürlüğe upsample edilir (bilineer), argmax orig-res'te alınır, metrikler ham etiketle hesaplanır. Resized vs orig-res'te Combined mIoU değişimi sadece +0.21p — protokol stabil."</li>
+              <li>"mIoU neden Alaudah'ta yok?" → "Alaudah PA, MCA, FwIoU rapor etmiş. mIoU'yu kendileri rapor etmedikleri için direkt kıyas yok; bizim 0.7931 sayımız referans olarak dosyalandı."</li>
+            </ul>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> Sunumun en güçlü iddiası. Slayt #28'de savunma cümlesi olarak tam metniyle gelecek. Tezde Discussion bölümünün dayanak sayısı.</p>
           </div>
         </div>
       </div>
 
       <div class="summary">
-        <div class="label">Slayt #07 stratejisi — sunum mesajı</div>
+        <div class="label">Slayt #07 stratejisi — sunum mesajı (2026-05-19 güncel)</div>
         <p>Bu slayttan sonra dinleyici <strong>şu üç şeyi</strong> bilmeli:<br>
-        1. Literatürdeki 0.94+ sayılar <em>farklı protokol</em> kullanıyor.<br>
+        1. Literatürdeki 0.94+ sayılar <em>farklı protokol</em> kullanıyor (random split, 7 sınıf, interactive).<br>
         2. Adil referans Alaudah 2019 best (PA 0.905 / MCA 0.817 / FwIoU 0.832).<br>
-        3. v9 ensemble <strong>üç metrikte de sayısal olarak Alaudah'ı geçti</strong> (+3.5 / +5.6 / +6.0 puan), <em>ama</em> evaluator protokolü farklı olduğu için "geçtim" diye formal iddia yapmıyor.<br>
-        <em>Vurgu:</em> Bu "sayısal üstün + protokol pending + formal iddia yok" üçlüsü <strong>tek bir slaytta hem assertif hem akademik dürüst</strong> olabilmenin formülü. Slayt #28'de savunma cümlesi olarak detaylı geri gelecek.</p>
+        3. v9 ensemble <strong>aynı evaluator protokolünde</strong> üç metrikte de Alaudah'ı <strong>geçti</strong> — PA +3.51p, MCA +5.83p, FwIoU +5.97p. Original-resolution evaluator 2026-05-19'da koşturuldu, sonuçlar repo'da.<br>
+        <em>Vurgu:</em> Artık savunma "sayısal üstün ama protokol pending" değil — "<strong>aynı protokolde geçtim, kanıt elimde</strong>". Slayt #28'de savunma cümlesi olarak kesin haliyle geri gelecek.</p>
       </div>
     </section>
 

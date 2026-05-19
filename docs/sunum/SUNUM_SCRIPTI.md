@@ -234,17 +234,18 @@
 >
 > **(3) Heavy ensembling + interactive prompts — UmixClick 2025 bir kullanıcı tıklamalı yöntem.**
 >
-> **Biz Alaudah 2019 benchmark'ının orijinal coğrafi Test1/Test2 split'ine ve 6-sınıf düzenine sadığız. Modelimizden Alaudah ile aynı metriklerle (PA, MCA, FwIoU) hesapladığımızda PA 0.940, MCA 0.873, FwIoU 0.891 elde ediyoruz — Alaudah'ın 'best baseline'ının PA 0.905 / MCA 0.817 / FwIoU 0.832 değerlerinin **üçünde de sayısal olarak üzerinde** (+3.5, +5.6, +5.9 puan). ÖNEMLİ KAVET: Bizim sayılarımız 384×384 resized space'te hesaplanmıştır; Alaudah orijinal çözünürlükte (701×255 / 401×255) evaluator çalıştırır. Bu yüzden formal 'geçtik' iddiası yerine 'baseline üzerinde, protokol çekincesiyle' diyoruz — original-resolution evaluator henüz yazılmadı, bekleyen iş. Şu anki dürüst ifade: **Alaudah baseline'ının üzerinde sayısal sonuçlar, methodology hataları analiz edilip düzeltilmiş, multi-seed ile varyans ölçülmüş bir baseline**. mIoU sayımız 0.791 — bu metriği Alaudah rapor etmediği için doğrudan kıyas yok.'**
+> **Biz Alaudah 2019 benchmark'ının orijinal coğrafi Test1/Test2 split'ine, 6-sınıf düzenine ve original-resolution evaluator'üne sadığız. Aynı evaluator protokolünde Alaudah ile aynı metriklerle (PA, MCA, FwIoU) hesapladığımızda PA 0.9401, MCA 0.8753, FwIoU 0.8917 elde ediyoruz — Alaudah'ın 'best baseline'ının PA 0.905 / MCA 0.817 / FwIoU 0.832 değerlerini **üçünde de geçiyoruz** (+3.51, +5.83, +5.97 puan). Bu sayılar 2026-05-19'da çalıştırılan original-resolution evaluator'den geliyor — Alaudah'ın değerlendirme prosedürünü birebir taklit eder (softmax orijinal H×W'ye upsample, metrik ham çözünürlükte hesaplanır). mIoU değerimiz 0.7931 — bu metriği Alaudah rapor etmediği için bu metrikte direkt kıyas yok ama orijinal-res evaluator referans olarak dosyalandı. Dürüst ifade: **Alaudah baseline'ını aynı evaluator protokolünde üç metrikte geçen, methodology hataları analiz edilip düzeltilmiş, multi-seed ile varyans ölçülmüş bir baseline**.'**
 >
 > [SLAYT: FwIoU/PA/MCA karşılaştırma]
 > | Yöntem | mIoU | FwIoU | PA | MCA | Eval Çözünürlüğü |
 > |---|---:|---:|---:|---:|---|
 > | Alaudah section + aug + skip (best baseline) | — | 0.832 | 0.905 | 0.817 | Orijinal (701×255) |
-> | **Bizim v9 ensemble** | **0.791 ± 0.006** | **0.891** | **0.940** | **0.873** | **384×384 resized** |
+> | **Bizim v9 ensemble (orig-res eval)** | **0.7931** | **0.8917** | **0.9401** | **0.8753** | **Orijinal (birebir kıyas)** |
+> | v9 ensemble (resized 384 eval) | 0.7910 ± 0.006 | 0.8908 | 0.9402 | 0.8734 | 384×384 resized |
 > | AdaSemSeg target-only (farklı split) | — | 0.86 | 0.91 | 0.89 | farklı |
 > | UmixClick (interactive) | 0.767 | — | 0.935 | — | belirsiz |
 >
-> v9 ensemble PA, MCA ve FwIoU sayıları Alaudah baseline'ının üzerinde — ancak farklı evaluator protokolü kullandığımız için bu doğrudan kıyas değildir. **Şu anki dürüst iddia: 'Alaudah baseline'ının üzerinde sayısal sonuçlar (protokol çekincesiyle), leakage hatalarını analiz edip düzelten, multi-seed varyans raporlayan dürüst bir baseline'**."
+> v9 ensemble PA, MCA ve FwIoU sayıları **aynı evaluator protokolünde** Alaudah baseline'ının üzerinde — bu doğrudan kıyas hâli. **Dürüst iddia: 'Alaudah baseline'ını aynı evaluator protokolünde üç metrikte geçen, leakage hatalarını analiz edip düzelten, multi-seed varyans raporlayan dürüst bir baseline'**."
 
 **Geçiş:** "Sunumu bitirmeden, çalışmanın sınırlılıklarına dürüstçe değinmek istiyorum."
 
@@ -260,7 +261,7 @@
 >
 > **Birincisi, Class 4 Test2 başarısızlığı**. Ensemble'da bile Zechstein için Test2 IoU sadece 0.183 — yorumcu için kritik bir sınıfın bir test setinde model güvenilir değil. Bu methodology değil **alan adaptasyonu** problemi.
 >
-> **İkincisi, original-resolution evaluator eksikliği**. Sayılarımız 384×384 resized space'te hesaplandı. Alaudah orijinal çözünürlükte değerlendiriyor. Bu olmadan 'Alaudah'ı geçtik' iddiası yapamıyoruz — sadece 'seviyesindeyiz' diyoruz. Bu evaluator yazımı bekleyen iş.
+> **İkincisi, ~~original-resolution evaluator eksikliği~~ original-res ve resized eval arasında küçük metrik kaymaları**. Bu sınırlılık **kapatıldı** (2026-05-19): orig-res evaluator koşturuldu, sayılar Combined mIoU 0.7931, FwIoU 0.8917, PA 0.9401, MCA 0.8753. Bunlar resized space'teki sayılarla ±1 puan içinde — değerlendirme protokolü pratikte stabil. Alaudah birebir kıyas için artık formal "geçtik" iddiası mümkün.
 >
 > **Üçüncüsü, tek-volüm eğitim verisi**. F3 üzerinde eğittik ve test ettik. Penobscot veya Parihaka gibi farklı jeolojik ortamlarda performans bilinmiyor. Çapraz-volüm transfer testi bu çalışma kapsamında değildi.
 >
@@ -330,7 +331,7 @@
 >
 > **İlk öncelik**, **Türkiye havzaları için transfer learning** — TPAO veya TP işbirliği ile havza-spesifik fine-tune. Pilot hedef: Tuz Gölü (tuz tektoniği) ve Trakya (overpressure ardalanması).
 >
-> Ayrıca: **heterojen ensemble** (v9 + SFM v1), **alan adaptasyonu** (AdaSemSeg/EarthAdaptNet), **original-resolution evaluator** (Alaudah birebir kıyas), **çapraz-volüm transfer** (Penobscot/Parihaka).
+> Ayrıca: **heterojen ensemble** (v9 + SFM v1), **alan adaptasyonu** (AdaSemSeg/EarthAdaptNet), **çapraz-volüm transfer** (Penobscot/Parihaka). (Original-resolution evaluator artık tamamlandı; Alaudah birebir kıyas yapıldı — formal "geçtik" iddiası tezde meşrulaştı.)
 >
 > Bu çalışmadan çıkardığım en büyük ders şudur: derin öğrenme tek başına bir mühendislik problemi değil; **doğru methodology, dürüst değerlendirme ve istatistiksel rigor** bilimsel olgunluğun ön koşullarıdır. Single-seed bias bulgumuz bu prensibin somut bir örneğidir.
 >
@@ -369,7 +370,7 @@ Mixup, label smoothing, focal alpha gibi optimizasyon bileşenleri ve TTA varyan
 **Cevap:** "Zechstein tuz tabakası **anisotropic** — inline yönünde sürekli/blok yapıdadır, crossline yönünde kıvrım/diapir morfolojisi gösterir. Eğitim verim inline-baskın temsil sunduğu için model crossline'a genelleyemiyor. Bu **domain adaptation** problemi — methodology değil. AdaSemSeg, EarthAdaptNet gibi few-shot DA yaklaşımları future work'te. Ayrıca bugün gösterdiğim SFM mini-deneyinde SFM v1'in Class 4 Test2'de 0.270 ile daha iyi olduğunu gördük — heterojen ensemble (v9 + SFM) ucuz ve umut verici bir çözüm yolu."
 
 ### S7: "%79 mIoU SOTA'ya göre nerede?"
-**Cevap:** "Mevcut çalışma SOTA iddiasında değil. Modern literatür (2025-2026) sismik-spesifik foundation model'lara döndü: SFM 192 sismik survey'den 2.3M slice ile pretrain ediyor, GFM 450 sentetik volüm kullanıyor. Bizim ImageNet pretrain EfficientNet-B4 yaklaşımımız bu perspektifte **baseline seviyesinde**. F3 baseline'ı (Alaudah 2019 PA 0.905 / MCA 0.817) ile benzer bantta — ama doğrudan kıyas için orijinal-çözünürlük evaluator gerekli, bu future work. Literatürdeki 0.94+ sayıların çoğu farklı split/farklı metrik (savunma cümlesi açıklandı)."
+**Cevap:** "Mevcut çalışma SOTA iddiasında değil. Modern literatür (2025-2026) sismik-spesifik foundation model'lara döndü: SFM 192 sismik survey'den 2.3M slice ile pretrain ediyor, GFM 450 sentetik volüm kullanıyor. Bizim ImageNet pretrain EfficientNet-B4 yaklaşımımız bu perspektifte **modern bir baseline**. F3 baseline'ı (Alaudah 2019 PA 0.905 / MCA 0.817 / FwIoU 0.832) ile **aynı evaluator protokolünde birebir kıyas** yaptık (2026-05-19'da koşturuldu): PA +3.51p, MCA +5.83p, FwIoU +5.97p ile Alaudah'ı geçiyoruz. Literatürdeki 0.94+ mIoU sayıların çoğu farklı split (random patch) veya farklı metrik karıştırması (savunma cümlesi açıklandı)."
 
 ### S8: "5-fold cross-validation neden yok?"
 **Cevap:** "5-fold = 5x eğitim maliyeti, 3060 Ti'de 7-10 saat × 5 = 35-50 saat. Yüksek lisans semineri zaman bütçesinde uygulanabilir bulmadım. Bunun yerine **3-seed multi-seed ensemble** yaptım — varyans ölçümü için bu da geçerli bir yaklaşım, hatta nnU-Net pratiği bu yöndedir. K-fold tezin uzun versiyonunda planlanıyor."
@@ -383,8 +384,8 @@ Mixup, label smoothing, focal alpha gibi optimizasyon bileşenleri ve TTA varyan
 ### S11 (YENİ): "SFM Class 4'te daha iyi ise neden ana model SFM değil?"
 **Cevap:** "İki gerekçe: (1) **Ortalama metriklerde geride** — Combined mIoU SFM v1 0.728, SFM v2 0.768, bizim v9 ensemble 0.791. Tez ana modelin overall performansta lider olmasını gerektiriyor. (2) **Heterojen ensemble future work** — v9 + SFM birleşimi muhtemelen her ikisinin de gücünü taşır. Şu an seçim 'sayısal en iyi' olmak zorundaydı; mantıksal en iyi 'birleşim' future work'tedir."
 
-### S12 (YENİ): "Original-resolution evaluator olmadan PA/MCA karşılaştırması anlamlı mı?"
-**Cevap:** "Sayısal olarak üç metrikte de Alaudah'ın üzerindeyiz (PA +3.5, MCA +5.6, FwIoU +5.9 puan), ama formal 'geçtik' iddiası **yapmıyoruz** çünkü protokol farklı: PA ve MCA piksel başına metrikler, resize'dan az etkilenir; mIoU/FwIoU ise overlap-tabanlı ve resize'a duyarlı — özellikle ince sınıflarda. Original-resolution evaluator yazımı bekleyen iş; aynı protokol altında erime olabilir. Bu yüzden dürüst ifade 'baseline üzerinde, protokol çekincesiyle'. Limitations'da açıkça yazıyorum."
+### S12 (YENİ — güncellendi 2026-05-19): "Original-resolution evaluator çalıştırıldı mı?"
+**Cevap:** "Evet, 2026-05-19'da koşturuldu. Sonuç: Combined mIoU 0.7931, FwIoU 0.8917, PA 0.9401, MCA 0.8753 — resized space sayılarıyla ±1 puan içinde, yani değerlendirme protokolü pratikte stabil. **Aynı evaluator protokolünde** Alaudah baseline'ını PA +3.51, MCA +5.83, FwIoU +5.97 puan ile geçtik. Bu artık formal iddia, protokol çekincesi yok. Detaylar `results/metrics/v9_ensemble_originalres_metrics.json`'da."
 
 ### S13 (YENİ): "3-seed yeterli mi? 10-seed veya 30-seed olsa nasıl olurdu?"
 **Cevap:** "İdeal değil ama yüksek lisans semineri için makul. 3-seed std 0.006 — bu zaten oldukça düşük, demek ki Combined mIoU'da varyans az. Class 4 Test2 std'si 0.04 daha yüksek — bu konuda 3-seed sınırlı tahmin verir. Tezin uzun versiyonunda en az 5-seed planlanıyor. Çok-seed (30+) literatürde nnU-Net stilinde nadir görülür, çünkü ekstra 7 koşunun marjinal değeri düşüktür — gauge için 3-5 yeterli."

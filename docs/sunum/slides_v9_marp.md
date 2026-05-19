@@ -329,13 +329,14 @@ Sonra 3-seed ensemble için 43 ve 44'ü de eğittik:
 | Yöntem | mIoU | FwIoU | PA | MCA | Eval |
 |---|---:|---:|---:|---:|---|
 | Alaudah 2019 best | — | 0.832 | 0.905 | 0.817 | Orijinal (701×255) |
-| **v9 ensemble (bizim)** | **0.791 ± 0.006** | **0.891** | **0.940** | **0.873** | **384×384 resized** |
+| **v9 ensemble (orig-res, bizim)** | **0.7931** | **0.8917** | **0.9401** | **0.8753** | **Orijinal — birebir kıyas** |
+| v9 ensemble (resized 384) | 0.791 ± 0.006 | 0.891 | 0.940 | 0.873 | 384×384 resized |
 | AdaSemSeg target-only | — | 0.86 | 0.91 | 0.89 | Farklı split |
 | UmixClick (interactive) | 0.767 | — | 0.935 | — | Belirsiz |
 
-**Dürüst iddia:** "Alaudah baseline'ının PA / MCA / FwIoU üçünde de **sayısal olarak üzerinde** (+3.5 / +5.6 / +5.9 p) — ama protokol çekincesiyle: bizim sayılar 384×384 resized space'te."
+**Formal iddia:** "Aynı evaluator protokolünde Alaudah baseline'ını PA +3.51p, MCA +5.83p, FwIoU +5.97p ile **geçtik**. Original-resolution evaluator 2026-05-19'da koşturuldu — birebir kıyas."
 
-**"Geçtik" demiyoruz** çünkü original-resolution evaluator henüz yok — apple-to-apple kıyas için future work.
+**0.94+ mIoU iddiaları:** Farklı protokol (random split, 7 sınıf, interactive) — adil kıyas dışı.
 
 ---
 
@@ -343,7 +344,7 @@ Sonra 3-seed ensemble için 43 ve 44'ü de eğittik:
 
 **1. Class 4 Test2 başarısızlığı (IoU 0.183)** — Zechstein'in anisotropik morfolojisi. Domain adaptation gerekli (AdaSemSeg, EarthAdaptNet).
 
-**2. Original-resolution evaluator eksik** — 384×384 resized eval'de hesapladık, Alaudah orijinalde. "Geçtik" iddiası yapamıyoruz.
+**2. ~~Original-resolution evaluator eksik~~** ✅ **Çözüldü (2026-05-19):** orig-res eval koşturuldu (Combined mIoU 0.7931, FwIoU 0.8917). Resize vs orig-res ±1p içinde. Aynı protokolde Alaudah'ı geçtik.
 
 **3. Tek-volüm eğitim** — Penobscot/Parihaka transfer test edilmedi. Cross-volume genelleme bilinmiyor.
 
