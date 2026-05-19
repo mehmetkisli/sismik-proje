@@ -1,0 +1,52 @@
+Cihaz: cuda  AMP: True
+
+Veri yükleniyor...
+  train_seismic: (401, 701, 255)
+  test1_seismic: (200, 701, 255)  test1_labels: (200, 701, 255)
+  test2_seismic: (601, 200, 255)  test2_labels: (601, 200, 255)
+
+[SEED 42] Model yükleniyor: deeplabv3plus_v9_best.pth
+  Test1 inference (multi-scale TTA, original-res output)...
+    softmax shape: (200, 6, 701, 255)  targets shape: (200, 701, 255)
+  Test2 inference (multi-scale TTA, original-res output)...
+    softmax shape: (200, 6, 601, 255)  targets shape: (200, 601, 255)
+  SEED 42 (original-res): Combined mIoU=77.79%  FwIoU=88.16%  Test1=77.59%  Test2=68.73%  C4 Test2 IoU=22.63%
+
+[SEED 43] Model yükleniyor: v9_seed_43_best.pth
+  Test1 inference (multi-scale TTA, original-res output)...
+    softmax shape: (200, 6, 701, 255)  targets shape: (200, 701, 255)
+  Test2 inference (multi-scale TTA, original-res output)...
+    softmax shape: (200, 6, 601, 255)  targets shape: (200, 601, 255)
+  SEED 43 (original-res): Combined mIoU=78.74%  FwIoU=88.96%  Test1=80.50%  Test2=66.26%  C4 Test2 IoU=15.36%
+
+[SEED 44] Model yükleniyor: v9_seed_44_best.pth
+  Test1 inference (multi-scale TTA, original-res output)...
+    softmax shape: (200, 6, 701, 255)  targets shape: (200, 701, 255)
+  Test2 inference (multi-scale TTA, original-res output)...
+    softmax shape: (200, 6, 601, 255)  targets shape: (200, 601, 255)
+  SEED 44 (original-res): Combined mIoU=79.46%  FwIoU=89.18%  Test1=81.10%  Test2=67.26%  C4 Test2 IoU=15.92%
+
+[ENSEMBLE] Softmax averaging (3 model, original-res)...
+
+=====================================================================================
+ V9 ENSEMBLE — ORIGINAL-RESOLUTION EVALUATOR
+=====================================================================================
+
+Metric                   Resized (384)    Original-res          Δ
+-------------------------------------------------------------------------------------
+Combined mIoU                  79.10%          79.31%     +0.21p
+Combined FwIoU                 89.20%          89.17%     -0.03p
+Test1 mIoU                     77.52%          80.53%     +3.01p
+Test2 mIoU                     68.69%          67.71%     -0.98p
+Class 4 Test2                  18.30%          17.99%     -0.31p
+=====================================================================================
+
+Per-class IoU (Combined, original-res) — ENSEMBLE:
+  S0 Upper NS       : IoU=0.9525
+  S1 Lower NS       : IoU=0.8156
+  S2 Rijnland       : IoU=0.9406
+  S3 Scruff         : IoU=0.6304
+  S4 Zechstein      : IoU=0.8064
+  S5 Under Zech     : IoU=0.6130
+
+Metrikler: C:\Users\Teknogenetik\Desktop\sismik-proje-main\results\metrics\v9_ensemble_originalres_metrics.json
