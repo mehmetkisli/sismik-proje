@@ -252,9 +252,10 @@ else:
 
 
 # ─── Resized (384x384) referans değerleri — karşılaştırma için ─────────
-# Bu değerler results/metrics/v9_ensemble_metrics.json'dan kanonik
-v9_ensemble_resized = {"combined_miou": 0.7910, "test1_miou": 0.7752,
-                       "test2_miou": 0.6869, "c4_test2_iou": 0.183, "fwiou": 0.892}
+# Bu değerler results/metrics/v9_ensemble_metrics.json'dan kanonik (per-test mIoU
+# combined confusion matrix bazlı). FwIoU değerleri fwiou_ensemble_recompute.json'dan.
+v9_ensemble_resized = {"combined_miou": 0.7910, "test1_miou": 0.8043,
+                       "test2_miou": 0.6771, "c4_test2_iou": 0.1834, "fwiou": 0.8908}
 
 
 print("\n" + "=" * 85)

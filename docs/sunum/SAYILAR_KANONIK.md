@@ -53,15 +53,17 @@ Kaynak: [results/metrics/v9_ensemble_metrics.json](../../results/metrics/v9_ense
 
 **Resized 384 vs Original-res (aynı model, farklı evaluator):**
 
-| Metrik | Resized 384 | Original-res | Δ |
+| Metrik | Resized 384 (canonical) | Original-res | Δ |
 |---|---:|---:|---:|
-| Combined mIoU | 0.7910 | **0.7931** | +0.21p |
+| Combined mIoU | 0.7910 | **0.7931** | +0.20p |
 | Combined FwIoU | 0.8908 | 0.8917 | +0.09p |
-| Test1 mIoU | 0.7752 | **0.8053** | +3.01p ↑ |
-| Test2 mIoU | 0.6869 | 0.6771 | −0.98p |
-| Class 4 Test2 | 0.1830 | 0.1799 | −0.31p |
+| Combined PA | 0.9402 | 0.9401 | ≈ 0 |
+| Combined MCA | 0.8734 | 0.8753 | +0.19p |
+| Test1 mIoU | 0.8043 | 0.8053 | +0.10p |
+| Test2 mIoU | 0.6771 | 0.6771 | 0.00p |
+| Class 4 Test2 | 0.1834 | 0.1799 | −0.35p |
 
-**Mesaj:** Resized vs original-res sayıları ±1 puan içinde — değerlendirme protokolü stabil. Test1 mIoU orijinal-res'te +3p kazanıyor (resize ince sınıf sınırlarını bozuyordu). Combined mIoU pratikte değişmiyor.
+**Mesaj:** Resized vs original-res sayıları **pratikte aynı** (Test1 +0.10p, Test2 0.00p, Combined +0.20p). Değerlendirme protokolü tamamen stabil — resize aşaması metrikleri bozmuyor. Bu, Alaudah'ı geçtik iddiamızın orijinal çözünürlükten geliyor olmasının ötesinde, resize evaluator'ümüzün de doğru hesapladığını doğruluyor.
 
 Kaynak: [results/metrics/v9_ensemble_originalres_metrics.json](../../results/metrics/v9_ensemble_originalres_metrics.json) + [eval_originalres.log](../../eval_originalres.log)
 

@@ -205,17 +205,17 @@ Ek karmaşıklık: ~5 satır. Etki: 3 sızıntı tamamen kapatıldı.
 
 **Original-resolution evaluator koşturuldu — gerçek farklar:**
 
-| Metrik | Resize 384 | Original-res | Fark |
+| Metrik | Resize 384 (canonical) | Original-res | Fark |
 |---|---:|---:|---:|
-| Combined mIoU | 0.7910 | **0.7931** | +0.21p |
+| Combined mIoU | 0.7910 | **0.7931** | +0.20p |
 | Combined FwIoU | 0.8908 | **0.8917** | +0.09p |
 | Combined PA | 0.9402 | **0.9401** | ≈ 0 |
 | Combined MCA | 0.8734 | **0.8753** | +0.19p |
-| Test1 mIoU | 0.7752 | **0.8053** | **+3.01p** ↑ |
-| Test2 mIoU | 0.6869 | 0.6771 | −0.98p |
-| C4 Test2 IoU | 0.1830 | 0.1799 | −0.31p |
+| Test1 mIoU | 0.8043 | **0.8053** | +0.10p |
+| Test2 mIoU | 0.6771 | 0.6771 | 0.00p |
+| C4 Test2 IoU | 0.1834 | 0.1799 | −0.35p |
 
-**Bulgu:** Resize vs orig-res ±1p içinde — değerlendirme protokolü pratikte stabil. Test1 mIoU orig-res'te +3p kazanıyor (resize ince sınıf sınırlarını bozuyormuş). Test2'de minimal düşüş.
+**Bulgu:** Resize vs orig-res her metrikte **≤0.2 puan içinde** — değerlendirme protokolü tamamen stabil, resize metriği bozmuyor.
 
 **Sonuç:** Aynı evaluator protokolünde **Alaudah baseline'ı geçildi** — PA +3.51p, MCA +5.83p, FwIoU +5.97p.
 

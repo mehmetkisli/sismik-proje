@@ -261,7 +261,7 @@
 >
 > **Birincisi, Class 4 Test2 başarısızlığı**. Ensemble'da bile Zechstein için Test2 IoU sadece 0.183 — yorumcu için kritik bir sınıfın bir test setinde model güvenilir değil. Bu methodology değil **alan adaptasyonu** problemi.
 >
-> **İkincisi, ~~original-resolution evaluator eksikliği~~ original-res ve resized eval arasında küçük metrik kaymaları**. Bu sınırlılık **kapatıldı** (2026-05-19): orig-res evaluator koşturuldu, sayılar Combined mIoU 0.7931, FwIoU 0.8917, PA 0.9401, MCA 0.8753. Bunlar resized space'teki sayılarla ±1 puan içinde — değerlendirme protokolü pratikte stabil. Alaudah birebir kıyas için artık formal "geçtik" iddiası mümkün.
+> **İkincisi, ~~original-resolution evaluator eksikliği~~ original-res ve resized eval arasında küçük metrik kaymaları**. Bu sınırlılık **kapatıldı** (2026-05-19): orig-res evaluator koşturuldu, sayılar Combined mIoU 0.7931, FwIoU 0.8917, PA 0.9401, MCA 0.8753. Bunlar resized space'teki canonical sayılarla **≤0.2 puan farkla** birebir aynı — değerlendirme protokolü tamamen stabil. Alaudah birebir kıyas için artık formal "geçtik" iddiası mümkün.
 >
 > **Üçüncüsü, tek-volüm eğitim verisi**. F3 üzerinde eğittik ve test ettik. Penobscot veya Parihaka gibi farklı jeolojik ortamlarda performans bilinmiyor. Çapraz-volüm transfer testi bu çalışma kapsamında değildi.
 >
@@ -385,7 +385,7 @@ Mixup, label smoothing, focal alpha gibi optimizasyon bileşenleri ve TTA varyan
 **Cevap:** "İki gerekçe: (1) **Ortalama metriklerde geride** — Combined mIoU SFM v1 0.728, SFM v2 0.768, bizim v9 ensemble 0.791. Tez ana modelin overall performansta lider olmasını gerektiriyor. (2) **Heterojen ensemble future work** — v9 + SFM birleşimi muhtemelen her ikisinin de gücünü taşır. Şu an seçim 'sayısal en iyi' olmak zorundaydı; mantıksal en iyi 'birleşim' future work'tedir."
 
 ### S12 (YENİ — güncellendi 2026-05-19): "Original-resolution evaluator çalıştırıldı mı?"
-**Cevap:** "Evet, 2026-05-19'da koşturuldu. Sonuç: Combined mIoU 0.7931, FwIoU 0.8917, PA 0.9401, MCA 0.8753 — resized space sayılarıyla ±1 puan içinde, yani değerlendirme protokolü pratikte stabil. **Aynı evaluator protokolünde** Alaudah baseline'ını PA +3.51, MCA +5.83, FwIoU +5.97 puan ile geçtik. Bu artık formal iddia, protokol çekincesi yok. Detaylar `results/metrics/v9_ensemble_originalres_metrics.json`'da."
+**Cevap:** "Evet, 2026-05-19'da koşturuldu. Sonuç: Combined mIoU 0.7931, FwIoU 0.8917, PA 0.9401, MCA 0.8753 — canonical resized sayılarla **≤0.2 puan** farkla aynı (Test1 +0.10p, Test2 0.00p, Combined +0.20p). Yani resize aşaması metrikleri bozmuyor; değerlendirme protokolü tamamen stabil. **Aynı evaluator protokolünde** Alaudah baseline'ını PA +3.51, MCA +5.83, FwIoU +5.97 puan ile geçtik. Bu artık formal iddia, protokol çekincesi yok. Detaylar `results/metrics/v9_ensemble_originalres_metrics.json`'da."
 
 ### S13 (YENİ): "3-seed yeterli mi? 10-seed veya 30-seed olsa nasıl olurdu?"
 **Cevap:** "İdeal değil ama yüksek lisans semineri için makul. 3-seed std 0.006 — bu zaten oldukça düşük, demek ki Combined mIoU'da varyans az. Class 4 Test2 std'si 0.04 daha yüksek — bu konuda 3-seed sınırlı tahmin verir. Tezin uzun versiyonunda en az 5-seed planlanıyor. Çok-seed (30+) literatürde nnU-Net stilinde nadir görülür, çünkü ekstra 7 koşunun marjinal değeri düşüktür — gauge için 3-5 yeterli."

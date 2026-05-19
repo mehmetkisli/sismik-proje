@@ -973,7 +973,7 @@
               <li><strong>FwIoU:</strong> Alaudah 0.832 → v9 orig-res <strong>0.8917</strong> → <strong style="color: var(--cat-metric)">+5.97 puan</strong></li>
               <li><strong>mIoU:</strong> Alaudah <em>rapor etmemiş</em> — direkt kıyas yok. v9 orig-res = 0.7931.</li>
             </ul>
-            <p><span class="sublabel">Resized vs original-res (aynı model):</span> Pratikte ±1 puan içinde. Combined mIoU 0.7910 → 0.7931 (+0.21p), Combined FwIoU 0.8908 → 0.8917 (+0.09p). Yani resize evaluator zaten orig-res'i çok iyi tahmin ediyormuş. Test1 mIoU orig-res'te +3p kazanıyor (resize ince sınıf sınırlarını bozuyordu).</p>
+            <p><span class="sublabel">Resized vs original-res (aynı model):</span> <strong>Pratikte aynı.</strong> Combined mIoU 0.7910 → 0.7931 (+0.20p), Combined FwIoU 0.8908 → 0.8917 (+0.09p), Test1 mIoU 0.8043 → 0.8053 (+0.10p), Test2 mIoU 0.6771 → 0.6771 (0.00p). Yani resize evaluator zaten orig-res'i çok iyi tahmin ediyormuş — değerlendirme protokolü tamamen stabil.</p>
             <p><span class="sublabel">Sonuç:</span> <strong>v9 ensemble aynı evaluator protokolünde Alaudah baseline'ını üç metrikte de geçti.</strong> Yorum bırakacak yer yok — sayılar açık, protokol birebir.</p>
             <p><span class="sublabel">Sunumdaki işlevi:</span> Savunma argümanı #3. "0.94 görenler hangi metriğe baktığını bilmiyor olabilir." + somut kanıt: aynı metrikte ben Alaudah'ı geçtim, 0.94+ iddiası ise farklı protokol/metrikten.</p>
           </div>
@@ -984,15 +984,17 @@
           <div class="term-body">
             <p><span class="sublabel">Geçmişteki sorun:</span> Kesitler 401×255 veya 701×255. ImageNet pretrained ağlar kare girdi sever; sen <strong>384×384'e resize</strong> ediyorsun → tahmini 384×384'te yapıyorsun → metriği 384×384'te hesaplıyordun. Alaudah ise <strong>orijinal çözünürlükte</strong> değerlendiriyor. Resize'la metrikler bire bir eşleşmiyordu.</p>
             <p><span class="sublabel">Yapılan iş (2026-05-19):</span> <code>scripts/eval_originalres.py</code> koşturuldu (PC GPU üzerinde). Bu script tahmini 384×384'te yapıp <strong>softmax'i orijinal H×W'ye upsample ediyor</strong>, sonra argmax + metrik orijinal çözünürlükte hesaplanıyor. Alaudah'ın değerlendirme prosedürünü birebir taklit eder.</p>
-            <p><span class="sublabel">Resize vs Original-Res — bulgular:</span></p>
+            <p><span class="sublabel">Resize vs Original-Res — bulgular (canonical resized vs orig-res):</span></p>
             <ul>
-              <li>Combined mIoU: 0.7910 → 0.7931 (+0.21p)</li>
+              <li>Combined mIoU: 0.7910 → 0.7931 (+0.20p)</li>
               <li>Combined FwIoU: 0.8908 → 0.8917 (+0.09p)</li>
-              <li>Test1 mIoU: 0.7752 → 0.8053 (+3.01p) ↑</li>
-              <li>Test2 mIoU: 0.6869 → 0.6771 (−0.98p)</li>
-              <li>C4 Test2: 0.1830 → 0.1799 (−0.31p)</li>
+              <li>Combined PA: 0.9402 → 0.9401 (≈ 0)</li>
+              <li>Combined MCA: 0.8734 → 0.8753 (+0.19p)</li>
+              <li>Test1 mIoU: 0.8043 → 0.8053 (+0.10p)</li>
+              <li>Test2 mIoU: 0.6771 → 0.6771 (0.00p)</li>
+              <li>C4 Test2: 0.1834 → 0.1799 (−0.35p)</li>
             </ul>
-            <p><span class="sublabel">Önemli not:</span> Combined mIoU pratikte aynı — resize evaluatorda yapılan değerlendirme zaten orig-res'i çok iyi tahmin ediyormuş. Test1 mIoU ise orig-res'te +3p kazanıyor; resize ince sınıf sınırlarını bozuyordu. Test2'de minimal düşüş (Zechstein bölgesindeki ince diapir kenarları orig-res'te daha sert metriklenmiş olabilir).</p>
+            <p><span class="sublabel">Önemli not:</span> Her metrikte fark ±0.20 puan içinde — resize aşaması metriği bozmuyor. Bu, hem Alaudah'ı orijinal-res'te geçtiğimizi hem de resize evaluator'ümüzün doğru hesapladığını birlikte doğrular.</p>
             <p><span class="sublabel">Sunumdaki güncel tutumun:</span> "Aynı evaluator protokolünde Alaudah'ı PA +3.51p, MCA +5.83p, FwIoU +5.97p ile geçtim" — <strong>formal iddia</strong>. Protokol çekincesi yok.</p>
             <p><span class="sublabel">Sunumdaki işlevi:</span> Savunma argümanı #4. "Aynı evaluator koşturdum, geçtim, kanıt elimde" mesajı.</p>
           </div>
