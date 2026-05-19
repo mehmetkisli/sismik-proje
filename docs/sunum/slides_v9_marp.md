@@ -211,6 +211,7 @@ Cosine Annealing Warm Restarts (T_0=25) her 25 epoch'ta restart → yeni local m
 | Dice | 0.886 | 0.772 | 0.877 |
 | Pixel Accuracy | 0.938 | 0.942 | **0.940** |
 | Mean Class Acc | 0.901 | 0.753 | **0.873** |
+| **FwIoU** | **0.889** | 0.896 | **0.891** |
 
 **3-seed ensemble** (SEED 42+43+44 softmax averaging), multi-scale TTA, 384×384.
 
@@ -325,16 +326,16 @@ Sonra 3-seed ensemble için 43 ve 44'ü de eğittik:
 
 # Literatür Karşılaştırma — Savunma
 
-| Yöntem | mIoU | PA | MCA | Eval |
-|---|---:|---:|---:|---|
-| Alaudah 2019 best | — | 0.905 | 0.817 | Orijinal (701×255) |
-| **v9 ensemble (bizim)** | **0.791 ± 0.006** | **0.940** | **0.873** | **384×384 resized** |
-| AdaSemSeg target-only | — | 0.91 | 0.89 | Farklı split |
-| UmixClick (interactive) | 0.767 | 0.935 | — | Belirsiz |
+| Yöntem | mIoU | FwIoU | PA | MCA | Eval |
+|---|---:|---:|---:|---:|---|
+| Alaudah 2019 best | — | 0.832 | 0.905 | 0.817 | Orijinal (701×255) |
+| **v9 ensemble (bizim)** | **0.791 ± 0.006** | **0.891** | **0.940** | **0.873** | **384×384 resized** |
+| AdaSemSeg target-only | — | 0.86 | 0.91 | 0.89 | Farklı split |
+| UmixClick (interactive) | 0.767 | — | 0.935 | — | Belirsiz |
 
-**Dürüst iddia:** "Alaudah baseline seviyesinde, methodology hataları düzeltilmiş, multi-seed varyans raporlanmış."
+**Dürüst iddia:** "Alaudah baseline'ının PA / MCA / FwIoU üçünde de **sayısal olarak üzerinde** (+3.5 / +5.6 / +5.9 p) — ama protokol çekincesiyle: bizim sayılar 384×384 resized space'te."
 
-**"Geçtik" demiyoruz** çünkü original-resolution evaluator henüz yok.
+**"Geçtik" demiyoruz** çünkü original-resolution evaluator henüz yok — apple-to-apple kıyas için future work.
 
 ---
 

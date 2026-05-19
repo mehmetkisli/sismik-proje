@@ -126,7 +126,7 @@ Ek karmaşıklık: ~5 satır. Etki: 3 sızıntı tamamen kapatıldı.
 | CONSS semi-sup | 2023 | mIoU 0.9462 | Kendi split | ❌ |
 | AdaSemSeg target-only | 2025 | FwIoU 0.86 | Farklı F3 split | ⚠️ |
 | UmixClick interactive | 2025 | mIoU 0.7666, PA 0.9351 | Belirsiz | ❌ Interactive |
-| **v9 ensemble (bizim)** | **2026** | **mIoU 0.7910 ± 0.006, PA 0.940, MCA 0.873** | **Alaudah geographic** | **✅** |
+| **v9 ensemble (bizim)** | **2026** | **mIoU 0.7910 ± 0.006, FwIoU 0.891, PA 0.940, MCA 0.873** | **Alaudah geographic** | **✅** |
 
 **Detay:** [`docs/literature_table.md`](../literature_table.md)
 

@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sunum Çalışma Kılavuzu — DeepLabV3+ Sismik Fasiyes Segmentasyonu</title>
+  <style>
+    :root {
+      --bg: #f7f6f3;
+      --bg-card: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b6b6b;
+      --text-soft: #4a4a4a;
+      --border: #e3e1dc;
+      --border-strong: #c9c5bc;
+      --primary: #1e3a5f;
+      --accent: #c9a227;
+
+      /* Category colors */
+      --cat-tech: #2563eb;
+      --cat-tech-bg: #eef4ff;
+      --cat-geo: #92400e;
+      --cat-geo-bg: #fdf4e3;
+      --cat-metric: #15803d;
+      --cat-metric-bg: #ecfdf3;
+      --cat-data: #6b21a8;
+      --cat-data-bg: #f5edff;
+      --cat-method: #c2410c;
+      --cat-method-bg: #fff1e6;
+      --cat-limit: #b91c1c;
+      --cat-limit-bg: #fdecec;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .layout { display: flex; min-height: 100vh; }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 280px;
+      background: var(--primary);
+      color: #e4e9f0;
+      padding: 28px 18px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+    .sidebar h2 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+    .sidebar .sub {
+      font-size: 13px;
+      color: #9aa6b8;
+      margin-bottom: 20px;
+    }
+    .sidebar nav { display: flex; flex-direction: column; gap: 2px; }
+    .sidebar nav a {
+      color: #d4d9e0;
+      text-decoration: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 13.5px;
+      transition: background 0.15s;
+    }
+    .sidebar nav a:hover { background: rgba(255,255,255,0.08); color: white; }
+    .sidebar nav .section-title {
+      font-weight: 700;
+      color: var(--accent);
+      margin-top: 14px;
+      margin-bottom: 4px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 0 10px;
+    }
+    .sidebar nav .stub { color: #6f7c91; font-style: italic; }
+
+    /* MAIN CONTENT */
+    .content {
+      flex: 1;
+      padding: 40px 52px 80px;
+      max-width: 980px;
+    }
+
+    .header {
+      margin-bottom: 36px;
+      padding-bottom: 24px;
+      border-bottom: 3px solid var(--primary);
+    }
+    .header h1 { font-size: 30px; margin-bottom: 6px; color: var(--primary); font-weight: 700; }
+    .header .subtitle { color: var(--text-muted); font-size: 15px; }
+    .header .meta { color: var(--text-soft); font-size: 13px; margin-top: 8px; }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      padding: 14px 18px;
+      background: var(--bg-card);
+      border-radius: 10px;
+      margin-bottom: 36px;
+      border: 1px solid var(--border);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-soft); }
+    .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+
+    /* SLIDE CARD */
+    .slide {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 30px 34px;
+      margin-bottom: 32px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      border: 1px solid var(--border);
+    }
+    .slide-header {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      padding-bottom: 14px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .slide-number {
+      background: var(--primary);
+      color: white;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+    }
+    .slide-title { font-size: 21px; flex: 1; color: var(--primary); font-weight: 600; }
+    .slide-duration {
+      color: var(--text-muted);
+      font-size: 13px;
+      background: #f0ede5;
+      padding: 3px 10px;
+      border-radius: 5px;
+    }
+
+    /* SPEECH QUOTE */
+    .speech {
+      background: #fcf8ec;
+      border-left: 4px solid var(--accent);
+      padding: 16px 20px;
+      margin: 0 0 24px;
+      border-radius: 0 8px 8px 0;
+      font-style: italic;
+      color: #4a3d12;
+      font-size: 15.5px;
+      line-height: 1.7;
+    }
+    .speech .label {
+      display: block;
+      font-style: normal;
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    /* TERMS SECTION */
+    .terms { margin-top: 28px; }
+    .terms-heading {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1.4px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed var(--border);
+    }
+
+    .term {
+      border-left: 4px solid var(--border-strong);
+      background: #fafaf8;
+      padding: 16px 20px;
+      margin-bottom: 14px;
+      border-radius: 0 8px 8px 0;
+    }
+    .term.tech   { border-left-color: var(--cat-tech);   background: var(--cat-tech-bg); }
+    .term.geo    { border-left-color: var(--cat-geo);    background: var(--cat-geo-bg); }
+    .term.metric { border-left-color: var(--cat-metric); background: var(--cat-metric-bg); }
+    .term.data   { border-left-color: var(--cat-data);   background: var(--cat-data-bg); }
+    .term.method { border-left-color: var(--cat-method); background: var(--cat-method-bg); }
+    .term.limit  { border-left-color: var(--cat-limit);  background: var(--cat-limit-bg); }
+
+    .term-name {
+      font-weight: 700;
+      font-size: 17px;
+      margin-bottom: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      color: var(--text);
+    }
+    .term-badge {
+      font-size: 10.5px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    .term.tech   .term-badge { background: var(--cat-tech);   color: white; }
+    .term.geo    .term-badge { background: var(--cat-geo);    color: white; }
+    .term.metric .term-badge { background: var(--cat-metric); color: white; }
+    .term.data   .term-badge { background: var(--cat-data);   color: white; }
+    .term.method .term-badge { background: var(--cat-method); color: white; }
+    .term.limit  .term-badge { background: var(--cat-limit);  color: white; }
+
+    .term-body { font-size: 15px; line-height: 1.7; color: var(--text-soft); }
+    .term-body p { margin-bottom: 8px; }
+    .term-body ul { margin: 6px 0 8px 22px; }
+    .term-body li { margin-bottom: 4px; }
+    .term-body strong { color: var(--text); font-weight: 600; }
+    .term-body em { color: var(--text); }
+    .term-body code {
+      background: rgba(0,0,0,0.06);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 0.88em;
+      font-family: "SF Mono", Menlo, Monaco, "Cascadia Code", monospace;
+      color: #b91c1c;
+    }
+    .term-body .sublabel {
+      display: inline-block;
+      font-weight: 700;
+      color: var(--text);
+      margin-right: 6px;
+    }
+
+    /* SUMMARY BOX */
+    .summary {
+      margin-top: 24px;
+      padding: 18px 22px;
+      background: linear-gradient(135deg, #fcf8ec 0%, #f7f1d8 100%);
+      border-radius: 8px;
+      border-left: 4px solid var(--accent);
+    }
+    .summary .label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.3px;
+      color: #806717;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .summary p { color: #3d3411; font-size: 15px; }
+
+    /* PLACEHOLDER */
+    .placeholder {
+      padding: 40px;
+      text-align: center;
+      color: var(--text-muted);
+      background: #f9f8f4;
+      border-radius: 8px;
+      border: 2px dashed var(--border-strong);
+      font-style: italic;
+      font-size: 14px;
+    }
+    .placeholder strong { color: var(--text-soft); }
+
+    /* PRINT */
+    @media print {
+      .sidebar { display: none; }
+      .content { padding: 0; max-width: none; }
+      .slide { page-break-after: always; box-shadow: none; border: 1px solid #ccc; }
+      body { background: white; }
+    }
+
+    /* MOBILE */
+    @media (max-width: 900px) {
+      .layout { flex-direction: column; }
+      .sidebar { position: relative; width: 100%; height: auto; }
+      .content { padding: 24px; }
+      .slide { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <aside class="sidebar">
+    <h2>İçindekiler</h2>
+    <div class="sub">33 slayt · Konuşmacı notu rehberi</div>
+    <nav>
+      <div class="section-title">Açılış</div>
+      <a href="#slayt-01">01. Açılış</a>
+      <a href="#slayt-02">02. Üç Mesaj</a>
+
+      <div class="section-title">Problem & Veri</div>
+      <a href="#slayt-03">03. Problem</a>
+      <a href="#slayt-04">04. F3 Veri Seti</a>
+
+      <div class="section-title">I — Literatür</div>
+      <a href="#slayt-05">05. Bölüm Girişi</a>
+      <a href="#slayt-06">06. Zaman Çizgisi</a>
+      <a href="#slayt-07">07. Karşılaştırılabilirlik</a>
+
+      <div class="section-title">II — Mimari & Yöntem</div>
+      <a href="#slayt-08" class="stub">08. Bölüm Girişi</a>
+      <a href="#slayt-09" class="stub">09. DeepLabV3+ + EfficientNet</a>
+      <a href="#slayt-10" class="stub">10. 2.5D Girdi</a>
+      <a href="#slayt-11" class="stub">11. QuadrupleLoss</a>
+
+      <div class="section-title">III — Methodology Fix</div>
+      <a href="#slayt-12" class="stub">12. Bölüm Girişi</a>
+      <a href="#slayt-13" class="stub">13. 3 Veri Sızıntısı</a>
+      <a href="#slayt-14" class="stub">14. Yol A Çözümü</a>
+      <a href="#slayt-15" class="stub">15. Öncesi/Sonrası</a>
+
+      <div class="section-title">IV — Sonuçlar</div>
+      <a href="#slayt-16" class="stub">16. Bölüm Girişi</a>
+      <a href="#slayt-17" class="stub">17. Eğitim Eğrileri</a>
+      <a href="#slayt-18" class="stub">18. Ana Sonuçlar</a>
+      <a href="#slayt-19" class="stub">19. Per-Class IoU</a>
+      <a href="#slayt-20" class="stub">20. Confusion Matrix</a>
+      <a href="#slayt-21" class="stub">21. Segmentasyon Görselleri</a>
+      <a href="#slayt-22" class="stub">22. Softmax Averaging</a>
+
+      <div class="section-title">V — Kritik Bulgu</div>
+      <a href="#slayt-23" class="stub">23. Bölüm Girişi</a>
+      <a href="#slayt-24" class="stub">24. Class 4 Test2 Gözlemi</a>
+      <a href="#slayt-25" class="stub">25. Üç Ders</a>
+      <a href="#slayt-26" class="stub">26. SFM Deneyleri</a>
+
+      <div class="section-title">VI — Tartışma</div>
+      <a href="#slayt-27" class="stub">27. Bölüm Girişi</a>
+      <a href="#slayt-28" class="stub">28. Literatür Savunma</a>
+      <a href="#slayt-29" class="stub">29. Class 4 Jeolojik Yorum</a>
+      <a href="#slayt-30" class="stub">30. Sınırlılıklar</a>
+      <a href="#slayt-31" class="stub">31. Türkiye Anlamı</a>
+      <a href="#slayt-32" class="stub">32. Future Work</a>
+
+      <div class="section-title">Kapanış</div>
+      <a href="#slayt-33" class="stub">33. Teşekkür</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <header class="header">
+      <h1>Sunum Çalışma Kılavuzu</h1>
+      <p class="subtitle">DeepLabV3+ ile Sismik Fasiyes Segmentasyonu — her slaytta geçen terimlerin, modellerin, kavramların ayrıntılı açıklamaları.</p>
+      <p class="meta">Hazırlanan seminer: 15 Haziran 2026 · Bilgisayarda Görme · Yüksek Lisans</p>
+    </header>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background: var(--cat-tech)"></div>Teknik / Mimari</div>
+      <div class="legend-item"><div class="legend-dot" style="background: var(--cat-geo)"></div>Jeoloji</div>
+      <div class="legend-item"><div class="legend-dot" style="background: var(--cat-metric)"></div>Metrik / İstatistik</div>
+      <div class="legend-item"><div class="legend-dot" style="background: var(--cat-data)"></div>Veri / Setup</div>
+      <div class="legend-item"><div class="legend-dot" style="background: var(--cat-method)"></div>Methodology</div>
+      <div class="legend-item"><div class="legend-dot" style="background: var(--cat-limit)"></div>Sınırlılık</div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════ -->
+    <!-- SLAYT 01 — AÇILIŞ                                                -->
+    <!-- ════════════════════════════════════════════════════════════════ -->
+    <section id="slayt-01" class="slide">
+      <div class="slide-header">
+        <span class="slide-number">#01</span>
+        <h2 class="slide-title">Açılış — DeepLabV3+ ile Sismik Fasiyes Segmentasyonu</h2>
+        <span class="slide-duration">30 sn</span>
+      </div>
+
+      <div class="speech">
+        <span class="label">Söyleyeceklerin</span>
+        Merhaba, ben Mehmet Kişli. Bugün F3 Hollanda sismik veri kümesi üzerinde <strong>DeepLabV3+</strong> tabanlı fasiyes segmentasyonu çalışmamı sunacağım. Çalışmanın omurgası: <strong>2.5D girdi + EfficientNet-B4 backbone + multi-seed ensemble</strong>. Combined mIoU <strong>0.791</strong>'e ulaştık — varyansla, dürüstçe raporlanmış şekilde.
+      </div>
+
+      <div class="terms">
+        <h3 class="terms-heading">Geçen Kavramlar</h3>
+
+        <div class="term geo">
+          <div class="term-name">Sismik Fasiyes Segmentasyonu <span class="term-badge">Jeoloji + Teknik</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Sismik:</span> Ses dalgası (Yunanca <em>seismos</em>, sarsıntı). Jeofizikte yer altına yapay olarak ses dalgası gönderip (dinamit, vibrator truck, hava topu), kayalardan yansıyan dalgaları yüzeyde mikrofonlarla (geofon/hidrofon) kaydetme tekniği.</p>
+            <p><span class="sublabel">Fasiyes (facies):</span> Jeoloji terimi. Belirli bir kaya birimi içinde benzer özelliklere (taneleşme, mineral, doku) sahip alt-bölgelerin adı. "Kumtaşı fasiyesi", "şeyl fasiyesi" gibi.</p>
+            <p><span class="sublabel">Sismik fasiyes:</span> Sismik kesite baktığında <strong>benzer yansıma örüntüsü</strong> gösteren bölgeler — yatay-paralel-sürekli, kıvrımlı-kaotik, dalgalı, vb.</p>
+            <p><span class="sublabel">Segmentasyon:</span> Bilgisayarlı görme terimi. Resmin <strong>her pikseline</strong> bir sınıf etiketi atama. (Sınıflandırma = tüm resme tek etiket. Segmentasyon = piksel piksel etiket.)</p>
+            <p><span class="sublabel">Neden önemli:</span> Yer altında petrol/gaz nerede birikmiş olabilir sorusunu cevaplamak için, önce yer altının jeolojik haritasını piksel piksel çıkarmak gerek.</p>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> Dinleyici bilgisayarlı görme uzmanı ama jeofizikçi değil — bu cümleyle "görüntü segmentasyonu problemi, ama hedef etiketler jeolojik birimler" mesajı kuruluyor.</p>
+          </div>
+        </div>
+
+        <div class="term data">
+          <div class="term-name">F3 Hollanda Sismik Veri Kümesi <span class="term-badge">Veri</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Ne:</span> Hollanda'nın Kuzey Denizi'ndeki bir <strong>offshore lisans bloğu</strong>. Hollanda kıyısından ~180 km kuzeyde, yaklaşık 16×24 km'lik bir alan. 1980'lerde TNO ve operatörler tarafından 3D sismik ile taranmış; 2010'larda kamuya açılmış (Open Seismic Repository / dGB Earth Sciences).</p>
+            <p><span class="sublabel">Akademideki rolü:</span> <strong>Standart benchmark</strong>. Herkes aynı veriyi indirip, aynı bölünmeyi (Alaudah 2019 split) kullanıyor — yani sonuçlar kıyaslanabilir.</p>
+            <p><span class="sublabel">Boyutlar:</span> Tek bir 3D blok — <code>401 inline × 701 crossline × 255 derinlik</code> voksel.</p>
+            <p><span class="sublabel">Etiketli (labeled):</span> Uzman jeofizikçiler her piksele "bu Rijnland, bu Zechstein" demiş — bu olmadan supervised learning yapamazdın.</p>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> "Bilinen, herkesin kullandığı bir benchmark" mesajı → karşılaştırılabilirlik iddiasının zemini.</p>
+          </div>
+        </div>
+
+        <div class="term tech">
+          <div class="term-name">DeepLabV3+ <span class="term-badge">Mimari</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Ne:</span> Google Brain'in 2018'de yayınladığı <strong>semantic segmentation mimarisi</strong> (Chen et al., ECCV 2018). DeepLab ailesinin 4. sürümü (v1 → v2 → v3 → v3+).</p>
+            <p><span class="sublabel">Anatomi:</span> <code>Girdi → Encoder (backbone) → ASPP → Decoder → Piksel-başına sınıf çıktısı</code></p>
+            <ul>
+              <li><strong>Encoder:</strong> Resmi düşük çözünürlüklü ama anlamca zengin feature map'e çevirir (senin durumda EfficientNet-B4).</li>
+              <li><strong>ASPP:</strong> Atrous Spatial Pyramid Pooling — farklı ölçeklerde bağlam toplar (slayt #09'da derinleşecek).</li>
+              <li><strong>Decoder:</strong> Düşük çözünürlüklü feature map'i orijinal boyuta geri büyütür ama sınıf bilgisiyle.</li>
+            </ul>
+            <p><span class="sublabel">Neden seçildi:</span> Sismik tabaka kalınlığı çok değişken (5 piksel ince band → 100+ piksel kalın blok). ASPP'nin "çoklu ölçek" yapısı buna uygun. U-Net'ten daha global context yakalar.</p>
+            <p><span class="sublabel">Tarihsel etki:</span> v3 baseline'ın U-Net'le mIoU 0.40'tı; DeepLabV3+'a geçişle 0.76'ya zıpladı. (Q&A'da S3 cevabında bunu söylüyorsun.)</p>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> "Eski model değil, modern bir baseline kullandım" mesajı.</p>
+          </div>
+        </div>
+
+        <div class="term tech">
+          <div class="term-name">EfficientNet-B4 Backbone <span class="term-badge">Encoder</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Backbone ne:</span> Segmentasyon ağının <strong>encoder kısmı</strong> — ham resmi (384×384×5) alıp feature map'lere (12×12×448 gibi) sıkıştıran omurga.</p>
+            <p><span class="sublabel">EfficientNet ne:</span> Google'ın 2019'da çıkardığı CNN mimarisi (Tan & Le, ICML 2019). Devrim: o güne kadar modeller ya derinleştirilirdi, ya genişletilirdi, ya çözünürlük artırılırdı; EfficientNet <strong>üçünü orantılı ölçekledi</strong> (compound scaling). Sonuç: daha az parametreyle daha yüksek accuracy.</p>
+            <p><span class="sublabel">B0 → B7:</span> Boyut varyantları. B0 en küçük (~5M parametre), B7 en büyük (~66M). <strong>B4 orta-üst boy</strong>: backbone tek başına ~19M, senin tam ağında toplam ~24M parametre.</p>
+            <p><span class="sublabel">ImageNet pretrained:</span> ImageNet (1.4M doğal resim, 1000 sınıf) üzerinde önceden eğitilmiş ağırlıklar. Düşük-seviye filtreler (kenar, doku, gradient) zaten öğrenilmiş; sismik veride bu temelin üzerine <strong>fine-tune</strong> ediyorsun.</p>
+            <p><span class="sublabel">Neden bu işe yarıyor:</span> Sismik resim doğal resim değil ama <strong>alt-seviye filtreler ortak</strong> (kenar her zaman kenardır). Sıfırdan eğitime kıyasla çok daha hızlı yakınsama + daha iyi son performans.</p>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> "Modern, verimli encoder + ImageNet transferi" mesajı. Hocaya "klasik AlexNet/VGG değil" sinyali.</p>
+          </div>
+        </div>
+
+        <div class="term tech">
+          <div class="term-name">2.5D Girdi <span class="term-badge">Veri Tasarımı</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Üç seçenek:</span></p>
+            <ul>
+              <li><strong>2D segmentasyon:</strong> Her inline kesiti (401×255 resim) ayrı modele veriyorsun. Komşu kesitler arası bağlam <em>yok</em>.</li>
+              <li><strong>3D segmentasyon:</strong> Tüm 3D bloğu modele veriyorsun. Bağlam tam, ama VRAM patlar, hesap maliyeti yüksek, ImageNet pretrain kullanamazsın (ImageNet 2D).</li>
+              <li><strong>2.5D:</strong> Bir inline + komşu 2 inline öncesi ve 2 sonrası = <strong>5 dilimlik stack</strong>. Bunları RGB'nin 3 kanalı yerine <strong>5 kanal</strong> olarak veriyorsun. 2D ağ, ama girdisinde lokal 3D bağlam var.</li>
+            </ul>
+            <p><span class="sublabel">Senin durumun:</span> 5 kanal = <code>[i-2, i-1, i, i+1, i+2]</code> inline'ları. Erken sürüm 3-kanaldı; sonra Class 4 problemine yanıt olarak 5'e çıkarıldı.</p>
+            <p><span class="sublabel">Neden 2.5D işe yarıyor:</span> 3D'nin avantajının <em>bir kısmını</em> alıyor (komşu jeolojik bağlam) + 2D'nin avantajlarını koruyor (ImageNet pretrain, küçük VRAM, hızlı). Liu et al. 2020 zaten "F3'te 2D > 3D patch-based" demiş — literatür desteği var.</p>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> Pragmatik mühendislik kararı; donanım kısıtı (8 GB VRAM 3060 Ti) + literatür bulgusunun birleşimi.</p>
+          </div>
+        </div>
+
+        <div class="term metric">
+          <div class="term-name">Multi-Seed Ensemble <span class="term-badge">İstatistik</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Ensemble (topluluk):</span> Aynı problem için birden fazla model eğitip, tahminlerini birleştirmek. Modellerin hataları birbirini sönümlediği için genelde tek modelden iyidir. (Random forest = karar ağaçları ensemble'ı, klasik örnek.)</p>
+            <p><span class="sublabel">Seed (tohum):</span> Bilgisayardaki rastgele sayı üretecini başlatan sayı. Aynı seed → aynı rastgelelik → aynı sonuç. Farklı seed'lerde ağırlık başlangıçları + veri sırası + augmentation rastgelelikleri farklı olur → farklı son model.</p>
+            <p><span class="sublabel">Multi-seed:</span> Aynı mimariyi farklı seed'lerle (örn. 42, 43, 44) birkaç kez eğitip sonuçların ortalamasını almak.</p>
+            <p><span class="sublabel">Senin durumun:</span> 3 ayrı model — SEED 42, 43, 44. Her birinin <strong>softmax çıktısı</strong> (her piksel için 6 sınıfın olasılık vektörü) hesaplanır, sonra <strong>kanal başına ortalama</strong> alınır, sonra argmax ile son tahmin.</p>
+            <p><span class="sublabel">Neden önemli (kritik):</span> Tek modelin sonucu <strong>şanslı veya şanssız</strong> olabilir. Multi-seed bu varyansı görünür kılar. Senin "Single-Seed Bias Bulgusu" tam bu — SEED=42'de Class 4 Test2 = 0.230, ama 3-seed ortalaması 0.183. Yani SEED=42 şanslı bir başlangıçtı; tek seed'le yetinseydin "mimari katkı" olarak rapor edip yanlış sonuca varırdın.</p>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> "Bilimsel rigor" iddianın temel direği.</p>
+          </div>
+        </div>
+
+        <div class="term metric">
+          <div class="term-name">Combined mIoU 0.791 ± 0.006 <span class="term-badge">Ana Sayı</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">IoU (Intersection over Union):</span> Tek sınıf için: <code>IoU = (Tahmin ∩ Ground Truth) / (Tahmin ∪ Ground Truth)</code>. Yani modelin "bu Zechstein" dediği pikseller ile gerçekten Zechstein olan piksellerin <strong>kesişiminin</strong>, birleşimine oranı. 0 (örtüşme yok) ile 1 (mükemmel) arası.</p>
+            <p><span class="sublabel">mIoU (mean IoU):</span> Her sınıf için ayrı IoU hesapla, ortalamasını al. <strong>Sınıf dengesizliğine karşı dirençli</strong> — her sınıf eşit ağırlıkta.</p>
+            <p><span class="sublabel">Combined ne:</span> Senin iki test setin var (Test1 = 200 inline, Test2 = 601 crossline). "Combined" = iki testteki <strong>tüm pikselleri tek havuzda</strong> birleştirip mIoU hesaplamak. Test1'in piksel sayısı daha küçük olduğu için Test2 ağırlıklı olur.</p>
+            <p><span class="sublabel">0.791:</span> 3 seed'in ortalama Combined mIoU'su.</p>
+            <p><span class="sublabel">±0.006:</span> 3 seed arasındaki <strong>standart sapma</strong>. Düşük std → metrik stabil → güven verir.</p>
+            <p><span class="sublabel">Neden Pixel Accuracy değil:</span> PA = doğru piksel / toplam piksel. Sınıf dengesizliği varsa yanıltıcı — Rijnland F3'te %48; naive model "her şey Rijnland" deyip PA 0.48 alabilir, ama mIoU berbat olur.</p>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> Tüm sunumun "ana sayısı". Slaytlar boyunca tutarlı: hep 0.791 ± 0.006. Hocaya "varyans dahil rapor ediyorum" sinyali → bilimsel olgunluk.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary">
+        <div class="label">Slayt #01 özeti — bir cümlede</div>
+        <p>"DeepLabV3+ <em>(mimari)</em> + EfficientNet-B4 <em>(encoder)</em> tabanlı, F3 Hollanda <em>(veri)</em> üzerinde, 2.5D girdi <em>(veri tasarımı)</em> + multi-seed ensemble <em>(istatistiksel rigor)</em> ile Combined mIoU 0.791 <em>(ana sayı)</em> elde ettim — varyansla <em>(dürüstlük)</em> raporladım." → Bu tek cümlede sunumun tüm omurgasını sıralıyorsun.</p>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════════ -->
+    <!-- SLAYT 02 — ÜÇ MESAJ                                              -->
+    <!-- ════════════════════════════════════════════════════════════════ -->
+    <section id="slayt-02" class="slide">
+      <div class="slide-header">
+        <span class="slide-number">#02</span>
+        <h2 class="slide-title">Sunumun Üç Mesajı</h2>
+        <span class="slide-duration">1 dk</span>
+      </div>
+
+      <div class="speech">
+        <span class="label">Söyleyeceklerin</span>
+        Bu sunumdan üç şeyi hatırlamanızı istiyorum. <strong>Birincisi:</strong> F3 benchmark'ında modern bir 2.5D DeepLabV3+ baseline kurdum, Combined mIoU 0.791 ± 0.006 — standart sapmayla raporladım. <strong>İkincisi:</strong> Daha önceki bir sürümde üç adet veri sızıntısı tespit ettim. Bunları saklamak yerine dürüstçe düzelttim ve etkisini raporladım — sayı düştü, ama gerçek genelleme ortaya çıktı. <strong>Üçüncüsü:</strong> Multi-seed ensemble ile tek-seed raporlamanın gerçek istatistiksel riskini somut bir vaka olarak gösterdim. Bu, alanın metodolojik olarak en zayıf noktasına parmak basan küçük ama anlamlı bir bulgu.
+      </div>
+
+      <div class="terms">
+        <h3 class="terms-heading">Geçen Kavramlar</h3>
+
+        <div class="term method">
+          <div class="term-name">Veri Sızıntısı (Data Leakage) <span class="term-badge">Methodology</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Ne:</span> Test (veya validation) verisinin bilgisinin, model <strong>farkında olmadan</strong> eğitime sızması. Bu olduğunda model test'te yapay olarak yüksek skor alır, ama gerçek yeni veride başarısız olur.</p>
+            <p><span class="sublabel">Klasik örnekler:</span></p>
+            <ul>
+              <li>Test verisini eğitim setine yanlışlıkla dahil etmek.</li>
+              <li>Train/test ayrımından <em>önce</em> tüm veride normalization yapmak (test'in mean/std bilgisi train'e karışır).</li>
+              <li>Time-series'de geleceği geçmişe karıştırmak.</li>
+              <li>(Senin durumun) Coğrafi olarak komşu pikselleri train ve test'e dağıtmak — test bilgisi train'in komşusundan dolaylı sızar.</li>
+            </ul>
+            <p><span class="sublabel">Niye kritik:</span> Sızıntı varsa rapor edilen sayı <strong>yapay olarak yüksektir</strong>. Üretime aldığında model çalışmaz; bilime de yanlış bulgu eklersin. Akademide ciddi bir kabahat olarak görülür.</p>
+            <p><span class="sublabel">Senin tespit ettiğin 3 sızıntı (slayt #13'te detay):</span></p>
+            <ul>
+              <li><strong>Contiguous validation bias:</strong> Val seti son %20 inline bloğu → lokasyon yanlılığı.</li>
+              <li><strong>3D crossline leakage:</strong> Crossline görüntülerinde val pikselleri var → dolaylı train.</li>
+              <li><strong>2.5D komşu sızıntısı:</strong> Val sınırındaki örneklerin komşu kanalları train'den geliyor.</li>
+            </ul>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> Akademik dürüstlük göstergesi. "Hatamı kendi tespit edip raporladım" → güven verir.</p>
+          </div>
+        </div>
+
+        <div class="term metric">
+          <div class="term-name">Genelleme (Generalization) <span class="term-badge">İstatistik</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Ne:</span> Modelin eğitimde görmediği yeni veride başarılı olma yeteneği. Makine öğrenmesinin <strong>asıl hedefi</strong>.</p>
+            <p><span class="sublabel">Overfitting (aşırı uyum):</span> Genellemenin tersi. Model eğitimi ezberler ama yeni veride çuvallar. Train metriği yüksek, test metriği düşük olur.</p>
+            <p><span class="sublabel">Senin bağlamın:</span> "Sayı düştü ama gerçek genelleme ortaya çıktı" derken kastettiğin: <strong>Methodology fix öncesi</strong> Combined mIoU 0.79 idi ama bu yapay (leakage besliyordu). Fix sonrası 0.77'ye düştü — <strong>bu düşüş aslında başarı</strong>: model artık <em>gerçek</em> yeni veride ne kadar iyi olduğunu söylüyor, yapay sayı değil.</p>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> "Yüksek sayı her zaman iyi değildir" mesajı. Akademik olgunluk göstergesi.</p>
+          </div>
+        </div>
+
+        <div class="term metric">
+          <div class="term-name">Standart Sapma (Std) ile Raporlama <span class="term-badge">İstatistik</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Standart sapma:</span> Bir veri kümesinin ortalamadan ne kadar dağıldığını ölçen istatistik. <code>std = √(Σ(xᵢ − μ)² / N)</code>.</p>
+            <p><span class="sublabel">Burada:</span> 3 seed'in Combined mIoU değerleri farklı çıktı; <strong>±0.006</strong> bunların ortalamadan dağılımı. Düşük std → metriğin tekrar üretilebilir olduğunu gösterir.</p>
+            <p><span class="sublabel">Niye önemli:</span> Derin öğrenme deneyleri <strong>rastgele başlangıca duyarlıdır</strong>. Tek koşunun sonucu şans eseri yüksek (veya düşük) olabilir. Std raporlamak = "metriğin gerçek değeri bu aralıkta" demek.</p>
+            <p><span class="sublabel">Literatür pratiği:</span> Üzücü gerçek: pek çok segmentasyon makalesi tek-seed sonuç raporluyor. Bu durum, alandaki replikasyon krizinin bir parçası. NeurIPS, ICLR gibi büyük konferanslar son yıllarda multi-seed istemeye başladı.</p>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> "Tek sayı değil, dağılım rapor ediyorum" → tek bir cümleyle istatistiksel olgunluğunu gösteriyor.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary">
+        <div class="label">Slayt #02 stratejisi</div>
+        <p>Bu üç mesajı <strong>parmaklarınla sayarak söyle</strong>. Dinleyici tüm sunum boyunca bu üç ankora geri dönecek. Mesaj #3 (single-seed bias bulgusu) senin <em>en özgün katkın</em> — onu söylerken sesini biraz vurgula.</p>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════════ -->
+    <!-- SLAYT 03 — PROBLEM                                               -->
+    <!-- ════════════════════════════════════════════════════════════════ -->
+    <section id="slayt-03" class="slide">
+      <div class="slide-header">
+        <span class="slide-number">#03</span>
+        <h2 class="slide-title">Problem: Sismik Fasiyes Sınıflandırması</h2>
+        <span class="slide-duration">1 dk</span>
+      </div>
+
+      <div class="speech">
+        <span class="label">Söyleyeceklerin</span>
+        Sismik fasiyes sınıflandırması, yer altı tabakalarının sismik dalga yansıma örüntülerine göre jeolojik birimlere ayrılması demek. Petrol ve gaz endüstrisinde <strong>rezervuar karakterizasyonu</strong> için kritik. Bugün hâlâ bu iş büyük ölçüde jeofizikçiler tarafından <strong>elle yapılıyor</strong>. Tek bir 3D blok yorumu günler sürüyor, ve farklı yorumcular aynı veri üzerinde farklı haritalar üretiyor — yani iş <em>uzun, öznel ve maliyetli</em>. Bizim hedefimiz: derin öğrenme ile <strong>piksel-bazlı, tekrarlanabilir, yorumcudan bağımsız</strong> bir otomasyon.
+      </div>
+
+      <div class="terms">
+        <h3 class="terms-heading">Geçen Kavramlar</h3>
+
+        <div class="term geo">
+          <div class="term-name">Sismik Dalga Yansıması (Reflection) <span class="term-badge">Jeofizik</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Fizik:</span> Bir ses dalgası iki farklı yoğunluktaki kayanın sınırına çarptığında, bir kısmı geri yansır. Bu yansıma, kayaların <strong>akustik empedans farkına</strong> bağlıdır (empedans = yoğunluk × dalga hızı).</p>
+            <p><span class="sublabel">Sismik resmin yapısı:</span> 2D sismik kesit aslında bir "yansıma profili" — yatay eksen yüzeyde bir doğrultu, dikey eksen <strong>iki-yönlü gidiş-dönüş zamanı</strong> (two-way travel time, TWT). Yani derinlik metre değil, milisaniye cinsinden.</p>
+            <p><span class="sublabel">Yansıma örüntüsü:</span> Aynı jeolojik birim içindeki kayalar benzer empedans yapısı taşır → kesitte benzer "doku" oluşturur. Bu doku jeologa "bu Zechstein, bu Rijnland" dedirten şey.</p>
+            <p><span class="sublabel">Niye ML işe yarayabilir:</span> Doku tanıma CNN'lerin güçlü olduğu alan. İnsan jeofizikçinin yaptığı şey <em>aslında</em> doku-bazlı sınıflandırma → ML için doğal bir hedef.</p>
+          </div>
+        </div>
+
+        <div class="term geo">
+          <div class="term-name">Rezervuar Karakterizasyonu <span class="term-badge">Endüstri</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Rezervuar:</span> Petrol veya doğal gazın biriktiği jeolojik formasyon. Üç koşulu olmalı: <em>kaynak kaya</em> (organik madde üreten), <em>rezervuar kaya</em> (gözenekli, depolayan), <em>örtü kaya</em> (kapatıp kaçırmayan).</p>
+            <p><span class="sublabel">Karakterizasyon:</span> Bu rezervuarın boyutunu, şeklini, gözenekliliğini, geçirgenliğini, doygunluğunu, sınırlarını belirleme süreci. Sondaj kararlarını, üretim planını ve yatırım hesabını doğrudan etkiler.</p>
+            <p><span class="sublabel">Sismik fasiyes'in rolü:</span> Bir bölgenin hangi jeolojik birime ait olduğunu bilmek, o bölgenin rezervuar olup olmadığını anlamanın ilk adımı. (Örn. Rijnland kumtaşları rezervuar olabilir, Zechstein evaporitleri örtü olabilir.)</p>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> "Bu akademik egzersiz değil, endüstride milyar dolarlık kararlar bu işlemden geçiyor" mesajı. Çalışmaya ekonomik değer ekliyor.</p>
+          </div>
+        </div>
+
+        <div class="term geo">
+          <div class="term-name">Manuel Yorumlama Sorunu <span class="term-badge">Workflow</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Süreç:</span> Jeofizikçi bir yazılımda (Petrel, Kingdom, OpendTect) 3D bloğu açar, kesit kesit gezer, tabakaları elle "boyar" (horizon picking + fasiyes assignment). Tek bir orta-boy 3D blok için <strong>günlerden haftalara</strong> kadar emek.</p>
+            <p><span class="sublabel">İki sorun:</span></p>
+            <ul>
+              <li><strong>Süre:</strong> Modern bir survey 10+ GB; manuel yorum bu hacmi takip edemez. Hız darboğazı.</li>
+              <li><strong>Yorumcu varyansı (interpreter variance):</strong> Aynı veriyi iki uzman <em>farklı</em> yorumlar. Tutarsızlık, tekrarlanabilirlik krizi.</li>
+            </ul>
+            <p><span class="sublabel">Çalışmalar:</span> Bond et al. 2007 — aynı kesiti 412 jeoloğa verdiler, "şu fay nerede?" diye sordular. Cevaplar <em>dramatik biçimde</em> dağıldı. Bu, alanın bilinen problemi.</p>
+            <p><span class="sublabel">Otomasyonun değeri:</span> Hızlı + <strong>determinist</strong> (her seferinde aynı çıktı) + <strong>yorumcudan bağımsız</strong>. Endüstri için yorum kalitesinin <em>tabanını</em> yükseltir.</p>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> "Bu problem hâlâ çözülmemiş, gerçek bir derdi var" diye motivasyonu güçlendiriyor.</p>
+          </div>
+        </div>
+
+        <div class="term tech">
+          <div class="term-name">Piksel-Bazlı Otomasyon (Pixel-wise Automation) <span class="term-badge">Hedef</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Ne demek:</span> Görüntünün <strong>her pikseline</strong> bir sınıf etiketi atayan model. Çıktı, girdi resimle aynı boyutta — sadece her piksele renk yerine "sınıf no" var.</p>
+            <p><span class="sublabel">Alternatifler ve neden bunu seçtin:</span></p>
+            <ul>
+              <li><strong>Sınıflandırma:</strong> Tüm resme tek etiket. Sismikte işe yaramaz — bir kesit birden çok fasiyes içerir.</li>
+              <li><strong>Object detection:</strong> Sınırlayıcı kutu (bounding box). Sismik tabakaların kenarları kutuyla ifade edilemez.</li>
+              <li><strong>Instance segmentation:</strong> Her "nesneyi" ayrı bul. Sismik tabakalar tekrar eden birimler değil → instance gereksiz.</li>
+              <li><strong>Semantic segmentation:</strong> Her piksele sınıf, "instance" yok. Sismik için tam doğru paradigm. <em>Senin yaptığın bu.</em></li>
+            </ul>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> Hedefi netleştiriyor — "haritayı piksel piksel çıkaracağım".</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary">
+        <div class="label">Slayt #03 stratejisi</div>
+        <p>Bu slayt <strong>"neden ilgi çekici"</strong> slaytı. Konuşurken sağdaki F3 görseline el hareketiyle işaret et: "Bu yer altı kesiti, biz bunu piksel piksel sınıflıyoruz". <em>'Manuel yorum günler alıyor'</em> ifadesini Türkiye bağlamında da hatırlatabilirsin (TPAO bağlantısı slayt #31'de bir daha gelecek).</p>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════════ -->
+    <!-- SLAYT 04 — VERİ SETİ                                             -->
+    <!-- ════════════════════════════════════════════════════════════════ -->
+    <section id="slayt-04" class="slide">
+      <div class="slide-header">
+        <span class="slide-number">#04</span>
+        <h2 class="slide-title">Veri Seti: Netherlands F3 Block</h2>
+        <span class="slide-duration">1.5 dk</span>
+      </div>
+
+      <div class="speech">
+        <span class="label">Söyleyeceklerin</span>
+        Çalışmayı Hollanda Kuzey Denizi'nde bulunan F3 sismik bloğu üzerinde yaptım. Bu, literatürde <strong>Alaudah 2019</strong> ile standartlaşmış bir benchmark. Eğitim için 401 inline × 701 crossline × 255 derinlik boyutunda <strong>tek bir volüm</strong> var; iki ayrı test seti var. <strong>Test1 inline yönünde</strong>, daha homojen; <strong>Test2 ise crossline yönünde ve içinde Zechstein diapiri var</strong> — bu, modelin gerçek zorlandığı nokta. Sınıf dağılımı çok dengesiz: Rijnland tek başına piksellerin <strong>%48</strong>'i; en zor sınıflarımız Zechstein yalnızca <strong>%3.28</strong>, Under Zechstein <strong>%1.51</strong>. Bu yüzden Pixel Accuracy tek başına yanıltıcı — ana metriği <strong>mIoU</strong> olarak seçmek zorunluydu.
+      </div>
+
+      <div class="terms">
+        <h3 class="terms-heading">Geçen Kavramlar</h3>
+
+        <div class="term data">
+          <div class="term-name">Inline / Crossline / Derinlik <span class="term-badge">3D Sismik Geometrisi</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">3D sismik tarama nasıl yapılır:</span> Gemi (offshore) veya kamyon (onshore) düz çizgilerde gider, dalga gönderir, yansımaları kaydeder. Paralel çizgiler bir <strong>survey ızgarası</strong> oluşturur.</p>
+            <p><span class="sublabel">Inline:</span> Geminin <em>gittiği yöne paralel</em> kesitler. F3'te 401 tane. Genelde "daha sürekli" görünür çünkü kayıt boyunca veri toplandı.</p>
+            <p><span class="sublabel">Crossline (Xline):</span> Inline'lara <em>dik</em> kesitler. F3'te 701 tane. Komşu inline'ların interpolasyonuyla oluşur; "daha gürültülü" görünebilir.</p>
+            <p><span class="sublabel">Derinlik (depth) ekseni:</span> 255 zaman örneği (sample). Aslında "iki-yönlü gidiş-dönüş zamanı" (TWT) — bir sample tipik olarak ~4 ms.</p>
+            <p><span class="sublabel">Neden inline/crossline ayrımı kritik:</span> Bazı jeolojik yapılar <strong>yön bağımlı (anisotropic)</strong>. Zechstein tuzu inline'da yatay-blok görünür, crossline'da kıvrımlı-diapir görünür. Bir yöne fazla maruz kalan model diğer yönde başarısız olur — senin Class 4 problemi tam bu (slayt #29'da derinleşecek).</p>
+            <p><span class="sublabel">Senin durumda boyutlar:</span></p>
+            <ul>
+              <li>Eğitim volümü: <code>401 × 701 × 255</code></li>
+              <li>Test1 (inline yönlü, ayrı blok): <code>200 × 701 × 255</code></li>
+              <li>Test2 (crossline yönlü, ayrı blok): <code>401 × 601 × 255</code></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="term data">
+          <div class="term-name">Alaudah 2019 Benchmark / Split <span class="term-badge">Veri Protokolü</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Kim:</span> Yazar Yazeed Alaudah (o dönem Georgia Tech). 2019'da yayınladığı çalışma: "A machine learning benchmark for facies classification" (Interpretation dergisi).</p>
+            <p><span class="sublabel">Katkıları:</span> F3 için <em>standart etiketleri</em> (6 sınıf) + <em>standart train/test bölümünü</em> yayınladı. Önceden herkes kendi etiketini, kendi split'ini kullanıyordu — kıyas imkânsızdı.</p>
+            <p><span class="sublabel">Split'in özelliği:</span> <strong>Coğrafi (geographic) split</strong> — eğitim ve test setleri F3 bloğunda <em>fiziksel olarak ayrı bölgelerden</em>. Random patch split <em>değil</em> (komşu piksellerin train ve test'e dağıldığı).</p>
+            <p><span class="sublabel">Neden coğrafi split daha dürüst:</span> Modelin <strong>yeni bir bölgeye genelleyip genellemediğini</strong> ölçer. Random split kolay (komşu pikseller benzer doku → kolay tahmin). Coğrafi split zor → gerçek genelleme testi.</p>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> "Aynı protokolü kullanıyorum, sayılar gerçekten kıyaslanabilir" garantisi. Slayt #07'de literatür savunmasında geri gelecek.</p>
+          </div>
+        </div>
+
+        <div class="term data">
+          <div class="term-name">Test1 vs Test2 <span class="term-badge">Değerlendirme Setleri</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Test1:</span> 200 inline'lık ayrı blok (inline 401-600 gibi). Modelin <strong>inline yönünde</strong> genelleme yeteneğini ölçer. F3'te bu yönde jeoloji daha homojen — bu yüzden Test1'de skorlar yüksek.</p>
+            <p><span class="sublabel">Test2:</span> 601 crossline'lık ayrı blok. Modelin <strong>crossline yönünde + Zechstein diapir bölgesini</strong> görmesini ölçer. Daha zor; "gerçek genelleme" testi.</p>
+            <p><span class="sublabel">Senin sayıların (v9 ensemble):</span></p>
+            <ul>
+              <li>Test1 mIoU: <strong>80.43%</strong> (inline yönü, kolay)</li>
+              <li>Test2 mIoU: <strong>67.71%</strong> (crossline + diapir, zor)</li>
+              <li>Combined mIoU: <strong>79.10% ± 0.6%</strong></li>
+            </ul>
+            <p><span class="sublabel">Niye fark böyle büyük:</span> Class 4 (Zechstein) Test1'de 0.84 IoU alıyor, Test2'de 0.18 — yaklaşık <strong>4.6 kat fark</strong>. Bu, anizotropik tuz tabakası probleminin somut göstergesi.</p>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> Daha sonra "Combined mIoU yanıltıcı, Test2'ye bakın" diyeceksin — burada zemin kuruyorsun.</p>
+          </div>
+        </div>
+
+        <div class="term geo">
+          <div class="term-name">6 Jeolojik Sınıf (F3'ün Tabakaları) <span class="term-badge">Etiket Kümesi</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Sınıflar (üstten alta, yani yeni → eski):</span></p>
+            <ol>
+              <li><strong>Class 0 — Upper North Sea Group:</strong> Yaklaşık son 23 milyon yıl (Miyosen-Pliyosen-Pleyistosen). Gevşek kum/çamur ardalanması. F3'ün üst tabakası. Piksellerin ~%20.</li>
+              <li><strong>Class 1 — Middle/Lower North Sea Group:</strong> Paleojen-Oligosen (~23-66 milyon yıl). Şeyl-baskın, ince ardalanmalar. ~%17.</li>
+              <li><strong>Class 2 — Rijnland / Chalk Group:</strong> Kretase (~66-145 milyon yıl). Karbonatlar, kalın-tek-tip. F3'ün en kalın katmanı. <strong>~%48</strong> — baskın sınıf.</li>
+              <li><strong>Class 3 — Scruff Group:</strong> Jura sonu (~145-160 milyon yıl). Şeyl-bazlı, ince. ~%6.</li>
+              <li><strong>Class 4 — Zechstein Group:</strong> Geç Permiyen (~252-260 milyon yıl). <strong>Evaporit</strong> (tuz + anhidrit). Diapir/kıvrım yaparak yer yer Rijnland'a kadar yükselir. Tuz tektoniği için kritik. <strong>~%3.28</strong> — azınlık.</li>
+              <li><strong>Class 5 — Under Zechstein (Rotliegend Group):</strong> Erken Permiyen ve öncesi (~260+ milyon yıl). Kırmızı kumtaşı ardalanması, bazı bölgelerde gaz rezervuarı. F3'ün en alt sınıfı. <strong>~%1.51</strong> — en azınlık.</li>
+            </ol>
+            <p><span class="sublabel">Niye bu sıralama önemli:</span> Tabakalar genelde <strong>stratigrafik sırada</strong> dizilir (yeni üstte, eski altta). Bu yüzden senin "VerticalFlip kullanmıyoruz" kararı doğru — derinlik ekseni ters çevrilemez.</p>
+            <p><span class="sublabel">Endüstriyel öneme sahip sınıflar:</span> Class 4 Zechstein (örtü kaya — gaz tutar), Class 5 Under Zechstein (rezervuar — gaz içerir). Bunlar <strong>azınlık ama kritik</strong>.</p>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> "Sınıflar farklı boyutta, farklı önemde" — slayt #06 (literatür), #19 (per-class IoU), #24-25 (Class 4 odaklı bulgu) için zemin.</p>
+          </div>
+        </div>
+
+        <div class="term limit">
+          <div class="term-name">Class Imbalance (Sınıf Dengesizliği) <span class="term-badge">Sınırlılık</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Sayılar:</span></p>
+            <ul>
+              <li>Class 2 Rijnland: %48 (baskın)</li>
+              <li>Class 0 Upper NS: %20</li>
+              <li>Class 1 Middle NS: %17</li>
+              <li>Class 3 Scruff: %6</li>
+              <li>Class 4 Zechstein: <strong>%3.28</strong></li>
+              <li>Class 5 Under Zech: <strong>%1.51</strong></li>
+            </ul>
+            <p><span class="sublabel">Niye sorun:</span> Standart cross-entropy loss <em>baskın sınıfa</em> odaklanır. Model "her şey Rijnland" deyip yüksek Pixel Accuracy alabilir, ama azınlık sınıflarda berbat olur.</p>
+            <p><span class="sublabel">Çözümlerin (sunum boyunca anlatılacak):</span></p>
+            <ul>
+              <li><strong>Metrik seçimi:</strong> mIoU (her sınıf eşit ağırlık) — PA yerine.</li>
+              <li><strong>Loss tarafında:</strong> Focal Loss (alpha = 1/frekans) → azınlığa odaklan.</li>
+              <li><strong>Data sampling:</strong> WeightedRandomSampler → C4/C5 içeren slice'lar 10 kat fazla görülür.</li>
+              <li><strong>Augmentation:</strong> xline-aware aug → Class 4 morfolojisi için.</li>
+            </ul>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> Daha sonraki slaytlarda gelecek <em>tüm</em> tasarım kararlarının motivasyonu burada kuruluyor.</p>
+          </div>
+        </div>
+
+        <div class="term metric">
+          <div class="term-name">Pixel Accuracy (PA) — Niye Yanıltıcı <span class="term-badge">Metrik</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">PA tanımı:</span> Doğru tahmin edilen piksel sayısı / toplam piksel sayısı. Basit, sezgisel.</p>
+            <p><span class="sublabel">F3'te neden yanıltıcı:</span> Rijnland %48. Naive model "her piksel = Rijnland" deyip <strong>PA = 0.48</strong> alır. Azınlık sınıflarda %0 başarıyla. Bu sayı yüksek görünür ama gerçek başarı yoktur.</p>
+            <p><span class="sublabel">mIoU karşılaştırması:</span> Aynı naive model mIoU'da <code>(0.48 + 0 + 0 + 0 + 0 + 0)/6 = 0.08</code> alır → gerçek tabloyu yansıtır.</p>
+            <p><span class="sublabel">Mean Class Accuracy (MCA):</span> Her sınıfın PA'sını ayrı hesapla, ortala. Sınıf dengesizliğine dirençli, ama segmentasyon kalitesini ölçmüyor (overlap'i ölçmez, sadece recall).</p>
+            <p><span class="sublabel">Frequency-Weighted IoU (FwIoU):</span> Her sınıfın IoU'sunu frekansla ağırlık verir. PA ile mIoU arası. Alaudah 2019 bunu kullanmış.</p>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> "Metrik seçimi keyfi değil, çalışmanın bilimsel kalitesini etkiler" mesajı. Hocaya metodoloji olgunluğu sinyali.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary">
+        <div class="label">Slayt #04 stratejisi</div>
+        <p>Sınıf dağılım sayılarını <strong>ezbere bil</strong> (%48 / %3.28 / %1.51). Sorulduğunda kekeleme. Test1/Test2 yön ayrımını <em>el hareketiyle</em> göster (sağ el inline, sol el crossline). Bu slayttan sonra dinleyici şunu bilmeli: "veri tek volüm, 6 sınıf, çok dengesiz, iki test seti var, biri zor".</p>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════════ -->
+    <!-- SLAYT 05 — BÖLÜM I GİRİŞİ                                        -->
+    <!-- ════════════════════════════════════════════════════════════════ -->
+    <section id="slayt-05" class="slide">
+      <div class="slide-header">
+        <span class="slide-number">#05</span>
+        <h2 class="slide-title">Bölüm I — Literatür Konumu</h2>
+        <span class="slide-duration">15 sn</span>
+      </div>
+
+      <div class="speech">
+        <span class="label">Söyleyeceklerin</span>
+        Şimdi literatürün nereye varmış olduğunu ve bu çalışmanın o haritada nereye oturduğunu konuşalım. Burada vurgulamak istediğim kritik nokta şu: <strong>literatürdeki bazı sayılarla bu çalışmanın sayılarını doğrudan karşılaştırmak adil değil</strong> — neden adil olmadığını bir sonraki slaytta göstereceğim.
+      </div>
+
+      <div class="terms">
+        <h3 class="terms-heading">Stratejik Vurgu</h3>
+
+        <div class="term method">
+          <div class="term-name">"Bölüm Geçişi" (Section Transition) Slaytı <span class="term-badge">Sunum Tekniği</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Amacı:</span> Dinleyiciyi <em>hazırlamak</em>. "Şu an buradayız, şuraya gidiyoruz" demek için kısa bir nefes alma slaytı.</p>
+            <p><span class="sublabel">15 saniyelik kural:</span> Çok kısa olmalı. Açıklama yok, sadece zemin kurma.</p>
+            <p><span class="sublabel">Burada özel tohum:</span> "Sayılar adil kıyaslanamaz" cümlesini <strong>bilerek tohumluyorsun</strong>. Slayt #07'de "savunma" iddianı bu cümleye dayandıracaksın. Hocaya "0.94 görenler şu an şüphede" sinyali.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════════ -->
+    <!-- SLAYT 06 — LİTERATÜR ZAMAN ÇİZGİSİ                               -->
+    <!-- ════════════════════════════════════════════════════════════════ -->
+    <section id="slayt-06" class="slide">
+      <div class="slide-header">
+        <span class="slide-number">#06</span>
+        <h2 class="slide-title">Literatür — Zaman Çizgisi</h2>
+        <span class="slide-duration">1.5 dk</span>
+      </div>
+
+      <div class="speech">
+        <span class="label">Söyleyeceklerin</span>
+        Modern F3 facies çalışmaları aslında 2019'da <strong>Alaudah ve ekibinin</strong> ortaya koyduğu benchmark ile başlıyor. Onlar <strong>DeconvNet</strong> tabanlı, section seviyesinde augmentation ve skip connection kullanan bir baseline kurdular — bizim ana referansımız bu.
+        <br><br>
+        2020'de <strong>Liu ve ekibi 3D CNN ile semi-supervised GAN</strong> denedi. İlginç bulguları: F3 gibi tek-volüm verilerde <strong>2D section yaklaşımı 3D patch'leme yaklaşımını geçiyor</strong>. Bu bizim 2.5D tercihimizin bilimsel temellerinden biri.
+        <br><br>
+        2022 Wiley, 2023 CONSS ve SFM, 2025 AdaSemSeg ile UmixClick — son yıllarda alan <strong>domain adaptation</strong> ve <strong>foundation model</strong>'lara kayıyor. Biz bu trendi takip ediyoruz: SFM ile mini bir denememiz var, ileride paylaşacağım.
+      </div>
+
+      <div class="terms">
+        <h3 class="terms-heading">Geçen Kavramlar — Zaman Sırasıyla</h3>
+
+        <div class="term tech">
+          <div class="term-name">Alaudah 2019 — DeconvNet + Section-Based <span class="term-badge">Referans Çalışma</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Kim, ne yaptı:</span> Yazeed Alaudah ve ekibi (Georgia Tech) 2019'da <em>Interpretation</em> dergisinde "A machine learning benchmark for facies classification" başlıklı makaleyi yayınladı. F3 için <strong>etiket seti + train/test split + baseline modelleri</strong> birlikte sundu.</p>
+            <p><span class="sublabel">DeconvNet ne:</span> 2015'te Noh et al. tarafından önerilen <strong>encoder-decoder segmentasyon mimarisi</strong>. VGG-tarzı bir encoder (resmi sıkıştırır) + tam tersi yapıda bir decoder (sıkıştırılmışı geri büyütür). <em>"Deconvolution"</em> burada "transposed convolution" anlamında. Bugünkü U-Net'in büyük amcası sayılabilir.</p>
+            <p><span class="sublabel">Section-based ne:</span> Tam kesiti modele veriyorsun (örn. 700×255 piksel). Alternatif <strong>patch-based</strong>: kesitten 64×64 küçük yamalar alıp her yamayı sınıflandırmak. Patch'in dezavantajı: <em>global jeolojik bağlam kaybolur</em>. Section'ın avantajı: tabaka bütünü görülür.</p>
+            <p><span class="sublabel">Augmentation:</span> Eğitim sırasında resimlere küçük geometrik/renksel bozulmalar uygulayarak veri kümesini "şişirme" tekniği. Aşırı uyumu (overfitting) azaltır.</p>
+            <p><span class="sublabel">Skip connection:</span> Encoder'ın ara katmanlarındaki feature'ları decoder'ın eşleşen katmanlarına <em>doğrudan aktarma</em>. Bu, "ne nerede" bilgisinin kaybolmasını önler. (U-Net'in imza özelliği.)</p>
+            <p><span class="sublabel">Alaudah'ın en iyi sayıları:</span> <code>PA = 0.905, MCA = 0.817, FwIoU = 0.832</code>. Bunları <strong>ezbere bil</strong> — savunma slaytında geri gelecekler. Senin v9 ensemble'ın PA 0.940, MCA 0.873 — yakın bantta, ama farklı evaluator (resize), bu yüzden "geçtim" demiyorsun.</p>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> Senin ana referans noktan. "Bu literatürde Alaudah'ın benchmark'ına sadık modern bir baseline kurdum" diyorsun.</p>
+          </div>
+        </div>
+
+        <div class="term tech">
+          <div class="term-name">Liu 2020 — 3D CNN + Semi-Supervised GAN <span class="term-badge">Kritik Bulgu</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Kim, ne yaptı:</span> Liu et al., 2020, <em>Geophysics</em> dergisi. F3 üzerinde hem klasik 3D CNN hem de semi-supervised GAN denediler.</p>
+            <p><span class="sublabel">GAN ne (kısaca):</span> Generative Adversarial Network — Goodfellow 2014. <strong>İki ağ birbirine karşı yarışır</strong>: Generator (üreteç) sahte örnek üretir, Discriminator (ayırt edici) gerçek/sahte ayırır. Yarış sırasında generator giderek daha gerçekçi örnekler üretir.</p>
+            <p><span class="sublabel">Semi-supervised ne:</span> "Yarı denetimli". Hem <em>etiketli</em> hem <em>etiketsiz</em> veri birlikte kullanır. Discriminator hem "gerçek mi sahte mi" hem de "hangi sınıf" sorularına cevap verir. Az etiketli + çok etiketsiz veride çok etkili.</p>
+            <p><span class="sublabel">Sismikte niye anlamlı:</span> Etiketleme çok pahalı (uzman jeofizikçi saatleri). Ham sismik veri ise bol. Semi-supervised = "Bu boltdaki etiketsizleri de değerlendir, ben size küçük etiketli kümeyi vereyim".</p>
+            <p><span class="sublabel">Liu'nun KRİTİK bulgusu:</span> F3 gibi <strong>tek-volüm</strong> verilerde, <em>section-based 2D yaklaşımı, patch-based 3D yaklaşımını geçiyor</em>. Sebep: 3D'de tek volümün içinden patch'lenince global jeolojik süreklilik parçalanıyor; 2D section ise jeolojiyi bütünüyle görüyor.</p>
+            <p><span class="sublabel">Senin için niye altın değerinde:</span> "Neden 3D değil, 2.5D?" sorusunun en güçlü tek cümlelik cevabı: <em>"Liu et al. 2020 F3'te bunu kanıtladı."</em> Bu, mimari seçimini akademik dayanakla zırhlıyor.</p>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> Slayt #10'da 2.5D'yi anlatırken bu bulguya geri dönüyorsun. Burada tohumlanıyor.</p>
+          </div>
+        </div>
+
+        <div class="term tech">
+          <div class="term-name">Wiley 2022 — Ensemble Yaklaşımı <span class="term-badge">Karşılaştırma</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Kim, ne yaptı:</span> Wiley et al., 2022. F3 üzerinde <strong>çoklu model ensemble + 7 sınıflı bir varyant</strong> denediler. Rapor ettikleri mIoU: <strong>0.9392</strong>.</p>
+            <p><span class="sublabel">Niye sayı bu kadar yüksek (uyarı):</span> Üç olası sebep:</p>
+            <ul>
+              <li><strong>Random patch split:</strong> Bazı çalışmalar coğrafi ayrım yerine rastgele patch alır — komşu pikseller train ve test'e dağılır → trivial mIoU artışı.</li>
+              <li><strong>7 sınıf vs 6 sınıf:</strong> Bizim 6 sınıfa karşılık Wiley 7 sınıf kullanmış. Farklı problem; doğrudan kıyas yanlış.</li>
+              <li><strong>Heavy ensemble:</strong> Birden fazla mimarinin tahminini birleştirmek hep skor artırır, ama hesap maliyeti katlanır.</li>
+            </ul>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> "Yüksek sayılar var ama farklı protokol" mesajının somut örneği. Slayt #07 ve #28'de tekrar gelecek.</p>
+          </div>
+        </div>
+
+        <div class="term tech">
+          <div class="term-name">CONSS 2023 — Contrastive Learning <span class="term-badge">Modern Yöntem</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">İsmin anlamı:</span> <em>CONtrastive learning for Seismic Sections</em>.</p>
+            <p><span class="sublabel">Contrastive learning ne:</span> Self-supervised pretrain yöntemi. Çekirdek fikir: aynı görüntünün farklı augmentation'ları (örn. crop, flip, color jitter) <strong>birbirine yakın</strong>, farklı görüntüler <strong>birbirinden uzak</strong> olsun. Etiket olmadan iyi temsiller öğrenir.</p>
+            <p><span class="sublabel">Tanıdık örnekler:</span> SimCLR (Google 2020), MoCo (Facebook 2019), DINO (Facebook 2021). Bugün foundation model pretrain'inin ana yöntemlerinden.</p>
+            <p><span class="sublabel">CONSS'un raporladığı:</span> Yaklaşık 0.9462 mIoU. Ama <strong>kendi train/test düzenini</strong> kurmuş → Alaudah split ile doğrudan kıyaslanamaz.</p>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> "Yüksek sayı + farklı protokol" zincirinin bir başka halkası.</p>
+          </div>
+        </div>
+
+        <div class="term tech">
+          <div class="term-name">SFM 2024 — Seismic Foundation Model <span class="term-badge">Trend / Sen Denedin</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Kim:</span> Sheng et al., 2024. Modelin adı <em>Seismic Foundation Model</em>.</p>
+            <p><span class="sublabel">Foundation Model ne (kavram):</span> Stanford CRFM'in (2021) tanımladığı terim. <strong>Çok büyük, self-supervised pretrain edilmiş, genel-amaçlı</strong> modeller. GPT, BERT, CLIP, DINO bu kategoride. Tek pretrain → onlarca downstream task'a fine-tune.</p>
+            <p><span class="sublabel">SFM'in spesifik özellikleri:</span></p>
+            <ul>
+              <li><strong>Backbone:</strong> ViT-B/16 (Vision Transformer, Base boyut, 16×16 patch).</li>
+              <li><strong>Pretrain yöntemi:</strong> MAE — Masked Autoencoder (He et al., 2022). Görüntünün %75'ini maskele, kalan %25'ten orijinali tahmin etmeyi öğren. BERT'in görsel versiyonu.</li>
+              <li><strong>Pretrain verisi:</strong> <strong>192 sismik survey'den 2.3 milyon slice</strong>. Sismik domain'e özgü pretrain.</li>
+            </ul>
+            <p><span class="sublabel">ViT ne (kısaca):</span> Vision Transformer — Dosovitskiy 2020. CNN'in alternatifi. Resmi 16×16 patch'lere böler, her patch'i "kelime" gibi düşünüp Transformer'a verir. Doğal dilde başarılı olan attention mekanizmasını görüntüye taşır.</p>
+            <p><span class="sublabel">Niye trend:</span> ImageNet pretrain doğal resim filtreleri öğrenir; sismik için <em>en iyi</em> değil. Domain-specific pretrain = sismik kayıt karakteristiklerini doğrudan içerir → potansiyel olarak daha iyi başlangıç.</p>
+            <p><span class="sublabel">Senin SFM deneyinde (slayt #26):</span> SFM'i F3'te fine-tune ettin. <strong>Ortalama metriklerde geride</strong> (Combined 0.728/0.768 vs senin 0.791), <strong>ama Class 4 Test2'de en iyi</strong> (0.270 vs senin 0.183). Domain-pretrain trade-off'unun somut kanıtı.</p>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> Burada tanıtılıyor, slayt #26'da denemenin sonuçları geliyor.</p>
+          </div>
+        </div>
+
+        <div class="term tech">
+          <div class="term-name">GFM 2025 — Geophysical Foundation Model <span class="term-badge">Trend</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Kim:</span> ThinkOnward ekibi, 2025. SFM'in rakibi/tamamlayıcısı.</p>
+            <p><span class="sublabel">Fark:</span> Pretrain verisi <strong>450 sentetik volüm</strong>. Yani gerçek sismik değil, fizik-tabanlı simülasyondan üretilmiş "sahte" sismik. Avantaj: jeolojik çeşitlilik kontrol altında.</p>
+            <p><span class="sublabel">Genel mesaj:</span> 2024-2025'te sismik foundation model yarışı başladı. Sen bu trendi <em>biliyorsun ve takip ediyorsun</em> ama mevcut çalışman için zaman/donanım bu kapsamı aşıyor.</p>
+          </div>
+        </div>
+
+        <div class="term tech">
+          <div class="term-name">AdaSemSeg 2025 — Domain Adaptation <span class="term-badge">Future Work Bağlantısı</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Konsept — Domain Adaptation (DA):</span> Modeli bir <em>kaynak domain</em>'de eğittin (örn. F3), başka bir <em>hedef domain</em>'de (örn. Parihaka, Penobscot) çalıştırmak istiyorsun. İki domain arasında <strong>distribution shift</strong> var → naive transfer çuvallar.</p>
+            <p><span class="sublabel">AdaSemSeg ne:</span> Sismik semantic segmentation için bir DA yöntemi. Target domain'den birkaç etiketli örnek + source domain'in tüm verisiyle eğitilir. Sayıları farklı split üzerinde olduğu için doğrudan kıyaslanamaz.</p>
+            <p><span class="sublabel">Senin için neden ilgili:</span> Class 4 Test2 problemi aslında <em>küçük bir domain shift</em> problemi (inline → crossline). Domain adaptation teknikleri future work'te (slayt #32).</p>
+          </div>
+        </div>
+
+        <div class="term tech">
+          <div class="term-name">UmixClick 2025 — Interactive Segmentation <span class="term-badge">Farklı Paradigma</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Interactive segmentation ne:</span> Tam otomatik <em>değil</em>. Kullanıcı bir/birkaç piksele tıklar ("burası Zechstein"), model bu ipucundan yola çıkıp tüm bölgeyi büyütür.</p>
+            <p><span class="sublabel">Mantığı:</span> Çıktıya insan müdahalesi var → kalite yüksek, ama tam otomatik bir baseline ile <strong>adil kıyaslanamaz</strong>.</p>
+            <p><span class="sublabel">UmixClick'in raporladığı:</span> mIoU 0.767, PA 0.935. Sayılar yakın görünür ama paradigma farklı.</p>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> "Yüksek sayı = iyi model değil; farklı paradigmaları ayırmak gerek" mesajı.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary">
+        <div class="label">Slayt #06 stratejisi</div>
+        <p>Tüm bu çalışmaların <strong>kronolojik sırasını</strong> ezbere bil: <em>Alaudah 2019 → Liu 2020 → Wiley 2022 → CONSS & SFM 2023-2024 → AdaSemSeg & UmixClick 2025</em>. Liu 2020'nin <strong>2D > 3D bulgusunu vurgulamayı unutma</strong> — sonraki slaytın temelini atıyor. Sunumun mesajı: "Alanı izliyorum, modern trendleri biliyorum, kendi tercihimin nedenini söylüyorum."</p>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════════ -->
+    <!-- SLAYT 07 — KARŞILAŞTIRILABİLİRLİK SORUNU                         -->
+    <!-- ════════════════════════════════════════════════════════════════ -->
+    <section id="slayt-07" class="slide">
+      <div class="slide-header">
+        <span class="slide-number">#07</span>
+        <h2 class="slide-title">Literatür — Karşılaştırılabilirlik Sorunu</h2>
+        <span class="slide-duration">1.5 dk</span>
+      </div>
+
+      <div class="speech">
+        <span class="label">Söyleyeceklerin</span>
+        Bu slayt sunumun <strong>en düzeltici slaytlarından biri</strong>. Literatür taradığınızda 0.94, 0.95 mIoU iddiaları görüyorsunuz — "bu adamlar nasıl bu kadar yüksek alıyor, ben neden alamadım" diye düşünmek doğal.
+        <br><br>
+        Cevap: tablodaki gibi çoğu çalışma <strong>farklı protokol</strong> kullanıyor. <strong>Wiley 2022 random split + 7 sınıf</strong> kullanmış — biz Alaudah'ın geographic split'i ile çalışıyoruz, bu ikisi farklı problemler. <strong>CONSS 2023 kendi train/test düzenini</strong> kurmuş — yine direkt karşılaştırılamaz. <strong>UmixClick interactive</strong>, yani kullanıcı tıklaması var — adil zemin yok.
+        <br><br>
+        Bizim adil referansımız <strong>Alaudah'ın 2019 best sonucu: PA 0.905, MCA 0.817, FwIoU 0.832</strong>. Üç metriğin üçünde de v9 ensemble bu sayıları <strong>sayısal olarak geçti</strong> — sırasıyla +3.5, +5.6, +6.0 puan. Ama burada bir <strong>protokol çekincesi</strong> var: bizim sayılar 384×384 resized space'te, Alaudah ise orijinal çözünürlükte. Aynı evaluator koşmadığım için "<em>geçtim</em>" diye formal iddia etmiyorum — bu pending iş.
+      </div>
+
+      <div class="terms">
+        <h3 class="terms-heading">Neden Direkt Kıyas Yapılamıyor — 5 Boyut</h3>
+
+        <div class="term data">
+          <div class="term-name">Random Split vs Geographic Split <span class="term-badge">EN KRİTİK FARK</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Random split ne:</span> Tüm pikselleri/patch'leri havuza at, rastgele %80'ini train, %20'sini test'e ayır.</p>
+            <p><span class="sublabel">Geographic split ne:</span> Volümün fiziksel olarak ayrı bir bölgesini test olarak ayır — coğrafi olarak train'le komşu değil.</p>
+            <p><span class="sublabel">Sismik için kritik fark:</span> Sismik veride <strong>uzaysal otokorelasyon</strong> çok yüksek — komşu pikseller benzer fasiyese ait. Random split yapınca <strong>train ve test pikselleri komşu çıkar</strong>; model "trainde gördüğüm pikselin 5 voxel komşusunu test'te göreceğim" durumuna geliyor → trivial yüksek skor.</p>
+            <p><span class="sublabel">Somut analoji:</span> Bir öğrenciye sınavdan önce sınav sorularının "5 cm yakınındaki" başka soruları ezberletmek gibi. Sınavda yüksek alır, ama gerçek bilgi yoktur.</p>
+            <p><span class="sublabel">Niye Wiley ve diğerleri random kullanmış:</span> Daha kolay, daha "iyi sayı" verir. Akademik olarak <em>yanlış</em>, ama yaygın bir hata.</p>
+            <p><span class="sublabel">Senin durumun:</span> Alaudah'ın <strong>geographic split</strong>'ini kullanıyorsun → çok daha zor, çok daha dürüst. Sayın daha düşük çıkıyor ama gerçek genelleme ölçülüyor.</p>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> Bu cümle savunmanın <strong>1 numaralı argümanı</strong>. Hocaya bu farkı somut anlat — gerekirse beyaz tahtaya çiz.</p>
+          </div>
+        </div>
+
+        <div class="term data">
+          <div class="term-name">Sınıf Sayısı Farkı (6 vs 7 vs Daha Az) <span class="term-badge">Etiket Düzeni</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Alaudah'ın orijinal düzeni:</span> 6 sınıf (Upper NS, Lower NS, Rijnland, Scruff, Zechstein, Under Zech). Senin kullandığın bu.</p>
+            <p><span class="sublabel">Wiley'in 7 sınıf düzeni:</span> Alaudah'ın sınıflarından birini ikiye böldü veya birleştirdi (örn. Zechstein'i alt-grup, üst-grup olarak ayırdı). <em>Farklı problem</em>.</p>
+            <p><span class="sublabel">Niye etkili:</span> Sınıfı bölmek IoU'yu hem yükseltebilir (alt-gruplar daha homojen) hem düşürebilir (azınlık daha azınlık). Net olan: <strong>aynı sayı değil</strong>.</p>
+            <p><span class="sublabel">Akademik kural:</span> Etiket düzeni farklıysa, sayılar <em>aynı tabelada görünse bile</em> kıyas yasaktır. Ölçek farklı.</p>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> Savunma argümanı #2. "Wiley'in 7 sınıfı bizim 6 sınıfımıza eşit değil."</p>
+          </div>
+        </div>
+
+        <div class="term metric">
+          <div class="term-name">Metrik Karışıklığı: PA / mIoU / FwIoU / MCA <span class="term-badge">Metrik Farkları</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">PA (Pixel Accuracy):</span> Doğru piksel / toplam piksel. <em>Dengesizliğe yanıltıcı.</em></p>
+            <p><span class="sublabel">mIoU (mean IoU):</span> Her sınıfın IoU'sunu eşit ağırlıkla ortalama. <em>Dengesizliğe dirençli.</em></p>
+            <p><span class="sublabel">FwIoU (Frequency-Weighted IoU):</span> Her sınıfın IoU'sunu <strong>piksel frekansıyla</strong> ağırlıklandır. Yani baskın sınıfların IoU'su daha çok ağırlık taşır. Bir nevi PA ile mIoU arası.</p>
+            <p><span class="sublabel">MCA (Mean Class Accuracy):</span> Her sınıfın recall'unu (TP / (TP+FN)) ortala. Sınıf bazında, ama overlap değil sadece bulma oranı.</p>
+            <p><span class="sublabel">Kritik gözlem:</span> Aynı modelin <strong>FwIoU değeri mIoU değerinden ~10-15 puan yüksek</strong> olabilir, çünkü baskın sınıflar (Rijnland) iyi tahmin edilir. Birini "mIoU" diye diğeriyle karıştırırsan büyük yanılgı.</p>
+            <p><span class="sublabel">Alaudah vs v9 — direkt kıyaslanabilir metrikler:</span></p>
+            <ul>
+              <li><strong>PA:</strong> Alaudah 0.905 → v9 <strong>0.9402</strong> → <strong style="color: var(--cat-metric)">+3.5 puan</strong></li>
+              <li><strong>MCA:</strong> Alaudah 0.817 → v9 <strong>0.8734</strong> → <strong style="color: var(--cat-metric)">+5.6 puan</strong></li>
+              <li><strong>FwIoU:</strong> Alaudah 0.832 → v9 <strong>0.8920</strong> → <strong style="color: var(--cat-metric)">+6.0 puan</strong></li>
+              <li><strong>mIoU:</strong> Alaudah <em>rapor etmemiş</em> — direkt kıyas yok. Senin v9 = 0.791.</li>
+            </ul>
+            <p><span class="sublabel">Sayısal sonuç:</span> Üç metrikte de <strong>v9 ensemble Alaudah'ı geçti</strong>. Yorum bırakacak yer yok — sayılar açık.</p>
+            <p><span class="sublabel">Niye yine de "geçtim" demiyorsun:</span> Aşağıdaki <em>Değerlendirme Çözünürlüğü</em> başlığına bak. Protokol farkı yüzünden formal iddia yapmıyorsun — ama bunun <strong>akademik bir disiplin tercihi</strong> olduğunu unutma. Sayılar zaten yüksek.</p>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> Savunma argümanı #3. "0.94 görenler hangi metriğe baktığını bilmiyor olabilir." + somut kanıt: aynı metrikte ben Alaudah'ı geçtim, 0.94+ iddiası ise bu metrikte değil mIoU'da.</p>
+          </div>
+        </div>
+
+        <div class="term data">
+          <div class="term-name">Değerlendirme Çözünürlüğü (Resize vs Original) <span class="term-badge">Sınırlılık</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Sorun:</span> Kesitler 401×255 veya 701×255. ImageNet pretrained ağlar kare girdi sever (224, 384, 512). Bu yüzden sen <strong>384×384'e resize</strong> ediyorsun → tahmini 384×384'te yapıyorsun → metriği 384×384'te hesaplıyorsun.</p>
+            <p><span class="sublabel">Alaudah ne yapıyor:</span> Tahmini <strong>orijinal çözünürlükte</strong> (701×255 veya 401×255) değerlendiriyor. Resize aşamasında piksel sayıları değiştiği için metrikler doğrudan eşleşmez.</p>
+            <p><span class="sublabel">Hangi metrik bundan ne kadar etkilenir:</span></p>
+            <ul>
+              <li><strong>PA, MCA:</strong> Az etkilenir — piksel-başına metrikler.</li>
+              <li><strong>mIoU, FwIoU:</strong> Daha duyarlı — overlap orantısı resize'la değişir, özellikle ince sınıflarda.</li>
+            </ul>
+            <p><span class="sublabel">Senin dürüst tutumun:</span> "Alaudah'ı geçtim" <em>demiyorsun</em>. "Yakın bantta, ama <strong>original-resolution evaluator</strong> bekleyen iş" diyorsun. Slayt #30'da limitations olarak da geçecek.</p>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> Savunma argümanı #4 + dürüstlük sinyali. Hocaya "kendi sınırlılığımı biliyorum" mesajı.</p>
+          </div>
+        </div>
+
+        <div class="term method">
+          <div class="term-name">Interactive vs Fully Automatic <span class="term-badge">Paradigma Farkı</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Fully automatic:</span> Girdi → model → çıktı. İnsan müdahalesi yok. Senin yaptığın.</p>
+            <p><span class="sublabel">Interactive:</span> Girdi + insan ipuçları (tıklamalar, çizimler) → model → çıktı. UmixClick bu kategoride.</p>
+            <p><span class="sublabel">Kıyas neden adil değil:</span> Interactive yöntem, kullanıcı her yeni bölge için bir "hint" verdiği sürece düşük skor alamaz. Bir tıklama bile ciddi avantaj. Two-paradigm comparison.</p>
+            <p><span class="sublabel">Endüstri perspektifi:</span> Ikisinin de yeri var. <em>Fully automatic</em> = milyonlarca slice'ı sessizce işle. <em>Interactive</em> = uzman yorumcuyla birlikte yüksek-kalite final çıktı. Farklı kullanım senaryoları.</p>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> Savunma argümanı #5. "Bizimki tam otomatik, kıyas başka problemlerle değil aynı problemle yapılmalı."</p>
+          </div>
+        </div>
+
+        <div class="term metric">
+          <div class="term-name">⭐ "Sayısal Olarak Geçtim, Ama İddia Etmiyorum" Cümlesi <span class="term-badge">Sunum Stratejisi</span></div>
+          <div class="term-body">
+            <p><span class="sublabel">Cümlenin yapısı (iki katmanlı):</span></p>
+            <ul>
+              <li><strong>Pozitif katman:</strong> "Alaudah'ın baseline'ını <em>üç metriğin üçünde de sayısal olarak geçtim</em>: PA +3.5, MCA +5.6, FwIoU +6.0 puan."</li>
+              <li><strong>Çekinme katmanı:</strong> "Ama 'geçtim' diye formal iddia etmiyorum — çünkü Alaudah orijinal çözünürlükte (701×255, 401×255) evaluator koşturuyor, ben 384×384 resized space'te. Aynı evaluator pending iş."</li>
+            </ul>
+            <p><span class="sublabel">Niye bu kombinasyon güçlü:</span> İki retorik avantaj:</p>
+            <ul>
+              <li><strong>Yumuşak iddia:</strong> Sayılar ortada — hocan "ama sen geçmedin" diyemez. Geçtin.</li>
+              <li><strong>Pre-emptive disarm:</strong> Original-resolution evaluator çekincesini <em>sen önce söylüyorsun</em>. Hocan o soruyu soracak olsa, "haklısınız, koşmadım, future work" diyebilirsin → güven verir.</li>
+            </ul>
+            <p><span class="sublabel">Niye "geçtim" iddiası çok daha güvensiz olurdu:</span> Eğer agresif "ben Alaudah'ı geçtim" deseydin, hocan original-resolution sorusunu sorardı; cevabın "koşmadım" olur → ağırlık kaybı. Bu yüzden <strong>"sayılar yüksek + protokol pending + iddia yapmıyorum"</strong> üçlüsü daha sağlam.</p>
+            <p><span class="sublabel">Pending iş'in durumu:</span> <code>scripts/eval_originalres.py</code> <em>yazılmış</em> ama Mac → PC checkpoint transferi yapılmadığı için koşturulmadı. Sunumdan önce 1-2 saatlik bir iş; istersen seminer öncesi koşturup formal iddiaya geçebilirsin. (LIMITATIONS.md ve future work'te belgeli.)</p>
+            <p><span class="sublabel">Sunumdaki işlevi:</span> Akademik olgunluk iddianın taşıyıcı cümlesi. Slayt #28'de tam metniyle savunma cümlesi olarak geri gelecek.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary">
+        <div class="label">Slayt #07 stratejisi — sunum mesajı</div>
+        <p>Bu slayttan sonra dinleyici <strong>şu üç şeyi</strong> bilmeli:<br>
+        1. Literatürdeki 0.94+ sayılar <em>farklı protokol</em> kullanıyor.<br>
+        2. Adil referans Alaudah 2019 best (PA 0.905 / MCA 0.817 / FwIoU 0.832).<br>
+        3. v9 ensemble <strong>üç metrikte de sayısal olarak Alaudah'ı geçti</strong> (+3.5 / +5.6 / +6.0 puan), <em>ama</em> evaluator protokolü farklı olduğu için "geçtim" diye formal iddia yapmıyor.<br>
+        <em>Vurgu:</em> Bu "sayısal üstün + protokol pending + formal iddia yok" üçlüsü <strong>tek bir slaytta hem assertif hem akademik dürüst</strong> olabilmenin formülü. Slayt #28'de savunma cümlesi olarak detaylı geri gelecek.</p>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════════ -->
+    <!-- SLAYT 08-33 PLACEHOLDER                                          -->
+    <!-- ════════════════════════════════════════════════════════════════ -->
+    <section class="slide">
+      <div class="placeholder">
+        <strong>Slayt #08 – #33 buraya sırayla eklenecek.</strong><br>
+        Sonraki adım: <em>Bölüm II — Mimari ve Yöntem</em> (slayt 08–11: DeepLabV3+ detayları, 2.5D, QuadrupleLoss). İstersen "devam" deyince eklerim.
+      </div>
+    </section>
+
+  </main>
+</div>
+</body>
+</html>

@@ -22,8 +22,9 @@ Tek bir cümlede söylemek gerekirse, **bu** sayı tezin ve sunumun ana sonucudu
 | Mean Dice | 0.8858 | 0.7717 | 0.8769 |
 | Pixel Accuracy (PA) | 0.9383 | 0.9422 | 0.9402 |
 | Mean Class Accuracy (MCA) | 0.9007 | 0.7525 | 0.8734 |
+| **FwIoU** | **0.8888** | **0.8964** | **0.8908** |
 
-Kaynak: [results/metrics/v9_ensemble_metrics.json](../../results/metrics/v9_ensemble_metrics.json)
+Kaynak: [results/metrics/v9_ensemble_metrics.json](../../results/metrics/v9_ensemble_metrics.json) + [results/metrics/fwiou_ensemble_recompute.json](../../results/metrics/fwiou_ensemble_recompute.json) (FwIoU post-hoc hesaplandı: ensemble_per_class_iou × gt_label_frequencies)
 
 ---
 
@@ -106,19 +107,19 @@ Class 4 Test2 IoU:
 | Yöntem | mIoU | FwIoU | PA | MCA | Karşılaştırılabilir? |
 |---|---:|---:|---:|---:|---|
 | Alaudah 2019 section+aug+skip (best baseline) | — | 0.832 | 0.905 | 0.817 | ✅ Aynı split, orijinal eval |
-| **v9 ensemble (bizim)** | **0.7910** | TBD | **0.9402** | **0.8734** | ⚠️ Aynı split, 384×384 resized eval |
+| **v9 ensemble (bizim)** | **0.7910** | **0.891** | **0.9402** | **0.8734** | ⚠️ Aynı split, 384×384 resized eval |
 | v7-fixed (referans baseline) | 0.7668 | 0.878 | 0.932 | 0.861 | ⚠️ Aynı split, 320×320 resized eval |
 | AdaSemSeg target-only | — | 0.86 | 0.91 | 0.89 | ⚠️ Farklı F3 split |
 | UmixClick (interactive) | 0.7666 | — | 0.9351 | — | ❌ Interactive, adil değil |
 | Wiley 2022 ensemble | 0.9392 | — | 0.9852 | — | ❌ Random split + 7 sınıf |
 
-**Savunma cümlesi (ezberlenecek):** "0.94+ mIoU sayılarının çoğu (Wiley 2022, CONSS 2023) **random patch split + farklı sınıf bölünmesi** kullanır — Alaudah'ın orijinal coğrafi split'ine sadık kalan az sayıda yöntemden biriyiz. PA 0.940 / MCA 0.873 değerlerimiz Alaudah baseline'ı (PA 0.905 / MCA 0.817) seviyesinde. Doğrudan 'geçtik' iddiası için original-resolution evaluator gerekli — bu future work."
+**Savunma cümlesi (ezberlenecek):** "0.94+ mIoU sayılarının çoğu (Wiley 2022, CONSS 2023) **random patch split + farklı sınıf bölünmesi** kullanır — Alaudah'ın orijinal coğrafi split'ine sadık kalan az sayıda yöntemden biriyiz. PA 0.940 / MCA 0.873 / FwIoU 0.891 değerlerimiz Alaudah baseline'ının (PA 0.905 / MCA 0.817 / FwIoU 0.832) **sayısal olarak üzerinde** — sırasıyla +3.5, +5.6, +5.9 puan. Ancak doğrudan 'geçtik' iddiası için aynı evaluator gerekli: bizim sayılar 384×384 resized space'te, Alaudah orijinal çözünürlükte. Original-resolution evaluator future work — bu yüzden formal 'geçtik' iddiası yerine 'baseline üzerinde, protokol çekincesiyle' diyoruz."
 
 ---
 
 ## 9. Eksik Sayılar (TBD — sunum öncesi tamamlanmalı)
 
-- **v9 ensemble FwIoU** — JSON'da yok, hesaplanmalı. Test-set sınıf frekansları × per-class IoU formülüyle çıkar. Tahmini değer: ~0.89-0.90 bandı (v7-fixed 0.878'den yukarı).
+- ~~**v9 ensemble FwIoU**~~ — ✅ Hesaplandı: **Combined 0.8908, Test1 0.8888, Test2 0.8964** ([fwiou_ensemble_recompute.json](../../results/metrics/fwiou_ensemble_recompute.json), 2026-05-18).
 - **TTA varyant ablation** — multi-scale vs HFlip-only vs no-TTA (tezin uzun versiyonunda, sunumdan önce yetişmez — Mac → bu PC checkpoint transferi yapılmadığı için).
 - **Original-resolution evaluator sayıları** — Alaudah birebir kıyas için (future work — sunumdan önce yetişmez, dürüstçe söylenecek).
 
